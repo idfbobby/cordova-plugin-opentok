@@ -6,11 +6,13 @@
 //
 
 #import "OpentokPlugin.h"
+#import "OTDefaultAudioDeviceWithVolumeControl.h"
 
 @implementation OpenTokPlugin{
     OTSession* _session;
     OTPublisher* _publisher;
     OTSubscriber* _subscriber;
+    OTAudioDevice* _audioDevice;
     NSMutableDictionary *subscriberDictionary;
     NSMutableDictionary *connectionDictionary;
     NSMutableDictionary *streamDictionary;
@@ -42,10 +44,23 @@
 
 // Called by TB.initsession()
 -(void)initSession:(CDVInvokedUrlCommand*)command{
+    BOOL bspkPhone = NO;
+
     // Get Parameters
     NSString* apiKey = [command.arguments objectAtIndex:0];
     NSString* sessionId = [command.arguments objectAtIndex:1];
-    
+
+    NSString* speakerPhone = [command.arguments objectAtIndex:2];
+    if ([speakerPhone isEqualToString:@"true"]) {
+        bspkPhone = YES;
+    }
+
+    // set audio device if needed
+    if (speakerPhone) {
+        _audioDevice = [[OTDefaultAudioDeviceWithVolumeControl alloc] init];
+        [OTAudioDeviceManager setAudioDevice:_audioDevice];
+    }
+
     // Create Session
     _session = [[OTSession alloc] initWithApiKey: apiKey sessionId:sessionId delegate:self];
     
@@ -403,7 +418,11 @@
     if( _publisher ){
         [_publisher.view removeFromSuperview];
     }
-    
+
+    if( _audioDevice ){
+        [_audioDevice release];
+    }
+
     // Setting up event object
     NSMutableDictionary* eventData = [[NSMutableDictionary alloc] init];
     [eventData setObject:@"clientDisconnected" forKey:@"reason"];
