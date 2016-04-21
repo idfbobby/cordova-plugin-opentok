@@ -12,7 +12,7 @@
     OTSession* _session;
     OTPublisher* _publisher;
     OTSubscriber* _subscriber;
-    OTAudioDevice* _audioDevice;
+    id<OTAudioDevice> _audioDevice;
     NSMutableDictionary *subscriberDictionary;
     NSMutableDictionary *connectionDictionary;
     NSMutableDictionary *streamDictionary;
@@ -417,10 +417,6 @@
     [subscriberDictionary removeAllObjects];
     if( _publisher ){
         [_publisher.view removeFromSuperview];
-    }
-
-    if( _audioDevice ){
-        [_audioDevice release];
     }
 
     // Setting up event object
