@@ -366,7 +366,9 @@ TBPublisher = (function() {
   };
 
   TBPublisher.prototype.removePublisherElement = function() {
-    this.pubElement.parentNode.removeChild(this.pubElement);
+	if (this.pubElement.parentNode) {
+	    this.pubElement.parentNode.removeChild(this.pubElement);
+	}
     return this.pubElement = false;
   };
 
