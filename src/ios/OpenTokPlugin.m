@@ -52,6 +52,7 @@
 
     NSNumber* speakerPhone = [command.arguments objectAtIndex:2];
     if ([speakerPhone boolValue]) {
+        [UIDevice currentDevice].proximityMonitoringEnabled = YES;
         bspkPhone = YES;
     }
 
