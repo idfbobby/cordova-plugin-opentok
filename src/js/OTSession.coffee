@@ -127,13 +127,13 @@ class TBSession
       TBUpdateObjects()
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "unsubscribe", [streamId] )
 
-  constructor: (@apiKey, @sessionId) ->
+  constructor: (@apiKey, @sessionId, @speakerPhone) ->
     @apiKey = @apiKey.toString()
     @connections = {}
     @streams = {}
     @alreadyPublishing = false
     OT.getHelper().eventing(@)
-    Cordova.exec(TBSuccess, TBSuccess, OTPlugin, "initSession", [@apiKey, @sessionId] )
+    Cordova.exec(TBSuccess, TBSuccess, OTPlugin, "initSession", [@apiKey, @sessionId, @speakerPhone] )
   cleanUpDom: ->
     objects = document.getElementsByClassName('OT_root')
     while( objects.length > 0 )

@@ -2,7 +2,7 @@
 #   Methods: 
 #     TB.checkSystemRequirements() :number
 #     TB.initPublisher( apiKey:String [, replaceElementId:String] [, properties:Object] ):Publisher
-#     TB.initSession( apiKey, sessionId ):Session 
+#     TB.initSession( apiKey, sessionId, speakerPhone ):Session 
 #     TB.log( message )
 #     TB.off( type:String, listener:Function )
 #     TB.on( type:String, listener:Function )
@@ -15,9 +15,9 @@ window.OT =
     return 1
   initPublisher: (one, two, three) ->
     return new TBPublisher( one, two, three )
-  initSession: (apiKey, sessionId ) ->
-    if( not sessionId? ) then @showError( "OT.initSession takes 2 parameters, your API Key and Session ID" )
-    return new TBSession(apiKey, sessionId)
+  initSession: (apiKey, sessionId, speakerPhone ) ->
+    if( not sessionId? ) then @showError( "OT.initSession takes 2 parameters, your API Key and Session ID and speakerPhone" )
+    return new TBSession(apiKey, sessionId, speakerPhone)
   log: (message) ->
     pdebug "TB LOG", message
   off: (event, handler) ->

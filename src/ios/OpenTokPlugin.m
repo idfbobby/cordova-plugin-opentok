@@ -50,8 +50,8 @@
     NSString* apiKey = [command.arguments objectAtIndex:0];
     NSString* sessionId = [command.arguments objectAtIndex:1];
 
-    NSString* speakerPhone = [command.arguments objectAtIndex:2];
-    if ([speakerPhone isEqualToString:@"true"]) {
+    NSNumber* speakerPhone = [command.arguments objectAtIndex:2];
+    if ([speakerPhone boolValue]) {
         bspkPhone = YES;
     }
 
