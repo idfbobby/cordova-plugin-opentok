@@ -44,8 +44,6 @@
 
 // Called by TB.initsession()
 -(void)initSession:(CDVInvokedUrlCommand*)command{
-    BOOL bspkPhone = NO;
-
     // Get Parameters
     NSString* apiKey = [command.arguments objectAtIndex:0];
     NSString* sessionId = [command.arguments objectAtIndex:1];
@@ -53,13 +51,10 @@
     NSNumber* speakerPhone = [command.arguments objectAtIndex:2];
     if ([speakerPhone boolValue]) {
         [UIDevice currentDevice].proximityMonitoringEnabled = YES;
-        bspkPhone = YES;
-    }
-
-    // set audio device if needed
-    if (speakerPhone) {
         _audioDevice = [[OTDefaultAudioDeviceWithVolumeControl alloc] init];
         [OTAudioDeviceManager setAudioDevice:_audioDevice];
+    } else {
+        [UIDevice currentDevice].proximityMonitoringEnabled = NO;
     }
 
     // Create Session
@@ -185,6 +180,9 @@
 }
 - (void)destroyPublisher:(CDVInvokedUrlCommand *)command{
     NSLog(@"iOS Destroying Publisher");
+    // turn off proxymity mode
+    [UIDevice currentDevice].proximityMonitoringEnabled = NO;
+    
     // Unpublish publisher
     [_session unpublish:_publisher error:nil];
     

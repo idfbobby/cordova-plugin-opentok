@@ -600,14 +600,18 @@ TBSession = (function() {
     var element;
     this.alreadyPublishing = false;
     console.log("JS: Unpublish");
-    element = document.getElementById(this.publisher.domId);
-    if (element) {
-      if (element.parentNode) {
-        element.parentNode.removeChild(element);
-      }
-      TBUpdateObjects();
-    }
-    return Cordova.exec(TBSuccess, TBError, OTPlugin, "unpublish", []);
+    if (typeof this.publisher !== 'undefined') {
+		element = document.getElementById(this.publisher.domId);
+		if (element) {
+		  if (element.parentNode) {
+			element.parentNode.removeChild(element);
+		  }
+		  TBUpdateObjects();
+		}
+		return Cordova.exec(TBSuccess, TBError, OTPlugin, "unpublish", []);
+	} else {
+		return false;
+	}
   };
 
   TBSession.prototype.unsubscribe = function(subscriber) {
