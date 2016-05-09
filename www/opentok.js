@@ -386,15 +386,10 @@ TBPublisher = (function() {
   };
 
   TBPublisher.prototype.removePublisherElement = function() {
-<<<<<<< HEAD
-	if (this.pubElement.parentNode) {
-	    this.pubElement.parentNode.removeChild(this.pubElement);
+	if (this.element) {
+	    this.element.parentNode.removeChild(this.element);
 	}
-    return this.pubElement = false;
-=======
-    this.element.parentNode.removeChild(this.element);
     return this.element = void 0;
->>>>>>> IjzerenHein/master
   };
 
   TBPublisher.prototype.destroy = function() {
@@ -585,37 +580,26 @@ TBSession = (function() {
     this.alreadyPublishing = false;
     this.publisher = null;
     console.log("JS: Unpublish");
-<<<<<<< HEAD
     if (typeof this.publisher !== 'undefined') {
-		element = document.getElementById(this.publisher.domId);
+		element = publisher.element;
 		if (element) {
 		  if (element.parentNode) {
 			element.parentNode.removeChild(element);
 		  }
 		  TBUpdateObjects();
 		}
-		return Cordova.exec(TBSuccess, TBError, OTPlugin, "unpublish", []);
+		onSuccess = function(result) {
+		  publisher.destroy();
+		  return TBSuccess(result);
+		};
+		onError = function(result) {
+		  publisher.destroy();
+		  return TBError(result);
+		};
+		return Cordova.exec(onSuccess, onError, OTPlugin, "unpublish", []);
 	} else {
 		return false;
 	}
-=======
-    element = publisher.element;
-    if (element) {
-      if (element.parentNode) {
-        element.parentNode.removeChild(element);
-      }
-      TBUpdateObjects();
-    }
-    onSuccess = function(result) {
-      publisher.destroy();
-      return TBSuccess(result);
-    };
-    onError = function(result) {
-      publisher.destroy();
-      return TBError(result);
-    };
-    return Cordova.exec(onSuccess, onError, OTPlugin, "unpublish", []);
->>>>>>> IjzerenHein/master
   };
 
   TBSession.prototype.unsubscribe = function(subscriber) {
