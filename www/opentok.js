@@ -24,6 +24,11 @@ window.OT = {
   setLogLevel: function(a) {
     return console.log("Log Level Set");
   },
+  setErrorCallback: (function(_this) {
+    return function(callback) {
+      return _this.errorCallback = callback;
+    };
+  })(this),
   upgradeSystemRequirements: function() {
     return {};
   },
@@ -217,7 +222,11 @@ replaceWithVideoStream = function(divName, streamId, properties) {
 };
 
 TBError = function(error) {
-  return navigator.notification.alert(error);
+  if (window.OT.errorCallback) {
+    return window.OT.errorCallback(error);
+  } else {
+    return console.error(error);
+  }
 };
 
 TBSuccess = function() {};
@@ -386,15 +395,28 @@ TBPublisher = (function() {
   };
 
   TBPublisher.prototype.removePublisherElement = function() {
+<<<<<<< HEAD
 	if (this.element) {
 	    this.element.parentNode.removeChild(this.element);
 	}
+=======
+    if (this.element && this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
+    }
+>>>>>>> IjzerenHein/master
     return this.element = void 0;
   };
 
   TBPublisher.prototype.destroy = function() {
+    var onSuccess;
+    onSuccess = (function(_this) {
+      return function(result) {
+        _this.removePublisherElement();
+        return TBSuccess(result);
+      };
+    })(this);
     if (this.element) {
-      return Cordova.exec(this.removePublisherElement, TBError, OTPlugin, "destroyPublisher", []);
+      return Cordova.exec(onSuccess, TBError, OTPlugin, "destroyPublisher", []);
     }
   };
 
