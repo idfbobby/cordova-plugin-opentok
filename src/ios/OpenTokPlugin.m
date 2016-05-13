@@ -187,16 +187,12 @@
     }
 }
 - (void)destroyPublisher:(CDVInvokedUrlCommand *)command{
-<<<<<<< HEAD
-    NSLog(@"iOS Destroying Publisher");
+    NSLog(@"destroyPublisher");
     // turn off proxymity mode
     [UIDevice currentDevice].proximityMonitoringEnabled = NO;
     
     // Unpublish publisher
     [_session unpublish:_publisher error:nil];
-=======
-    NSLog(@"destroyPublisher");
->>>>>>> IjzerenHein/master
     
     // Remove publisher view
     if (_publisher) {
