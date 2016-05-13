@@ -395,7 +395,7 @@ TBPublisher = (function() {
   };
 
   TBPublisher.prototype.removePublisherElement = function() {
-    if (this.element && this.element.parentNode && this.domId.substring(0,6)==='PubSub') {
+    if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
     }
     return this.element = void 0;

@@ -81,7 +81,7 @@ class TBPublisher
     return @
 
   removePublisherElement: =>
-    if(@element && @element.parentNode && @domId.substring(0,6)=='PubSub')
+    if(@element && @element.parentNode)
       @element.parentNode.removeChild(@element)
     @element = undefined
 
