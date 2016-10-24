@@ -10,13 +10,8 @@
     <keywords>opentok,tokbox</keywords>
 
     <platform name="android">
-<<<<<<< HEAD
-		<asset src="www/opentok.js" target="opentok.js" />
-=======
       <framework src="build-extras.gradle" custom="true" type="gradleReference" />
       <asset src="www/opentok.js" target="opentok.js" />
->>>>>>> IjzerenHein/master
-
 		<source-file src="src/android/com/tokbox/cordova/OpenTokAndroidPlugin.java"
 		target-dir="src/com/tokbox/cordova/" />
 
@@ -30,17 +25,12 @@
 			<uses-feature android:name="android.hardware.camera.autofocus" android:required="true" />
 		</config-file>
 
-<<<<<<< HEAD
-		<!-- copy opentok sdk -->
-		<framework src="src/android/libs/opentok-android.gradle" custom="true" type="gradleReference" />
-=======
       <!-- copy opentok sdk -->
       <!-- <source-file src="src/android/libs/opentok-android-sdk-2.5.0.jar" target-dir="libs/" />
       <source-file src="src/android/libs/armeabi/libopentok.so" target-dir="libs/armeabi" />
       <source-file src="src/android/libs/armeabi/libopentok.so" target-dir="libs/armeabi-v7a" />
       <source-file src="src/android/libs/x86/libopentok.so" target-dir="libs/x86" /> -->
       <source-file src="src/android/libs/opentok-android-sdk-2.9.0.aar" target-dir="libs/" />
->>>>>>> IjzerenHein/master
 
 		<resource-file src="src/android/libs/opentok-android-sdk-2.9.0.aar" target="libs/opentok-android-sdk-2.9.0.aar" />
 
@@ -97,6 +87,12 @@
       </config-file>
       <config-file target="config.xml" parent="/*">
         <access origin="*" />
+      </config-file>
+      <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
+      	<string>${PRODUCT_NAME} camera use</string>
+      </config-file>
+      <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
+      	<string>${PRODUCT_NAME} microphone use</string>
       </config-file>
     </platform>
 </plugin>
