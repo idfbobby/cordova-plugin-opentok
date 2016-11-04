@@ -49,10 +49,6 @@
 
       <header-file src="src/ios/OpenTokPlugin.h" />
       <source-file src="src/ios/OpenTokPlugin.m" />
-      <header-file src="src/ios/OTDefaultAudioDevice.h" />
-      <source-file src="src/ios/OTDefaultAudioDevice.m" />
-      <header-file src="src/ios/OTDefaultAudioDeviceWithVolumeControl.h" />
-      <source-file src="src/ios/OTDefaultAudioDeviceWithVolumeControl.m" />
 
       <framework src="libstdc++.dylib" />
       <framework src="libc++.dylib" />
