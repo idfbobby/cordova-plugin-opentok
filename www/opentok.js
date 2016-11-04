@@ -2,6 +2,9 @@ window.OT = {
   checkSystemRequirements: function() {
     return 1;
   },
+  setupAudio: function(hasVideo) {
+	return Cordova.exec(TBSuccess, TBError, OTPlugin, "setupAudio", [hasVideo]);
+  },
   initPublisher: function(targetElement, properties, completionHandler) {
     return new TBPublisher(targetElement, properties, completionHandler);
   },

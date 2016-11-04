@@ -6,13 +6,18 @@
 //
 
 #import "OpentokPlugin.h"
-#import "OTDefaultAudioDeviceWithVolumeControl.h"
+
+// Simulator *must* run at 44.1 kHz in order to function properly.
+#if (TARGET_IPHONE_SIMULATOR)
+#define kSampleRate 44100
+#else
+#define kSampleRate 48000
+#endif
 
 @implementation OpenTokPlugin{
     OTSession* _session;
     OTPublisher* _publisher;
     OTSubscriber* _subscriber;
-    id<OTAudioDevice> _audioDevice;
     NSMutableDictionary *subscriberDictionary;
     NSMutableDictionary *connectionDictionary;
     NSMutableDictionary *streamDictionary;
@@ -20,6 +25,8 @@
 }
 
 @synthesize exceptionId;
+
+static double kPreferredIOBufferDuration = 0.01;
 
 #pragma mark -
 #pragma mark Cordova Methods
@@ -42,6 +49,41 @@
     self.exceptionId = command.callbackId;
 }
 
+// Called by TB.setupAudio()
+- (void) setupAudioSession:(CDVInvokedUrlCommand*)command{
+    NSNumber* requestVideo = [command.arguments objectAtIndex:0];
+
+    AVAudioSession *mySession = [AVAudioSession sharedInstance];
+
+    if ([requestVideo boolValue]) {
+        [mySession setMode:AVAudioSessionModeVideoChat error:nil];
+    } else {
+        [mySession setMode:AVAudioSessionModeVoiceChat error:nil];
+    }
+    
+    [mySession setPreferredSampleRate: kSampleRate error: nil];
+    [mySession setPreferredInputNumberOfChannels:1 error:nil];
+    [mySession setPreferredIOBufferDuration:kPreferredIOBufferDuration
+                                      error:nil];
+    
+    NSError *error = nil;
+    NSUInteger audioOptions = AVAudioSessionCategoryOptionMixWithOthers;
+#if !(TARGET_OS_TV)
+    audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
+    audioOptions |= AVAudioSessionCategoryOptionDefaultToSpeaker;
+    [mySession setCategory:AVAudioSessionCategoryPlayAndRecord
+               withOptions:audioOptions
+                     error:&error];
+#else
+    [mySession setCategory:AVAudioSessionCategoryPlayback
+               withOptions:audioOptions
+                     error:&error];
+#endif
+    
+    if (error)
+        NSLog(@"Audiosession setCategory %@",error);
+}
+
 // Called by TB.initsession()
 -(void)initSession:(CDVInvokedUrlCommand*)command{
     NSLog(@"initSession...");
@@ -53,8 +95,6 @@
     NSNumber* speakerPhone = [command.arguments objectAtIndex:2];
     if ([speakerPhone boolValue]) {
         [UIDevice currentDevice].proximityMonitoringEnabled = YES;
-        _audioDevice = [[OTDefaultAudioDeviceWithVolumeControl alloc] init];
-        [OTAudioDeviceManager setAudioDevice:_audioDevice];
     } else {
         [UIDevice currentDevice].proximityMonitoringEnabled = NO;
     }
