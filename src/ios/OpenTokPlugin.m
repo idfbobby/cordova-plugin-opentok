@@ -50,7 +50,7 @@ static double kPreferredIOBufferDuration = 0.01;
 }
 
 // Called by TB.setupAudio()
-- (void) setupAudioSession:(CDVInvokedUrlCommand*)command{
+- (void)setupAudioSession:(CDVInvokedUrlCommand*)command{
     NSNumber* requestVideo = [command.arguments objectAtIndex:0];
     NSError *error = nil;
     NSUInteger audioOptions = 0;
@@ -85,6 +85,17 @@ static double kPreferredIOBufferDuration = 0.01;
     if (error) NSLog(@"Audiosession setPreferredInputNumberOfChannels %@",error);
     
     
+}
+
+// Called by TB.stopAudio()
+-(void)stopAudioSession:(CDVInvokedUrlCommand*)command{
+    AVAudioSession *mySession = [AVAudioSession sharedInstance];
+    NSError *error = nil;
+
+    [mySession setActive:NO error:&error];
+    
+    if (error)
+        NSLog(@"Audiosession setActive %@",error);
 }
 
 // Called by TB.initsession()

@@ -5,6 +5,9 @@ window.OT = {
   setupAudio: function(hasVideo) {
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "setupAudioSession", [hasVideo]);
   },
+  stopAudio: function() {
+    return Cordova.exec(TBSuccess, TBError, OTPlugin, "stopAudioSession", []);
+  },
   initPublisher: function(targetElement, properties, completionHandler) {
     return new TBPublisher(targetElement, properties, completionHandler);
   },

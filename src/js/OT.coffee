@@ -15,6 +15,8 @@ window.OT =
     return 1
   setupAudio: (hasVideo) ->
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "setupAudioSession", [hasVideo] )
+  stopAudio: ->
+    return Cordova.exec(TBSuccess, TBError, OTPlugin, "stopAudioSession", [] )
   initPublisher: (targetElement, properties, completionHandler) ->
     return new TBPublisher(targetElement, properties, completionHandler)
   initSession: (apiKey, sessionId, speakerPhone ) ->
