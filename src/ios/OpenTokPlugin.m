@@ -11,7 +11,7 @@
 #if (TARGET_IPHONE_SIMULATOR)
 #define kSampleRate 44100
 #else
-#define kSampleRate 48000
+#define kSampleRate 44100 //48000
 #endif
 
 @implementation OpenTokPlugin{
@@ -52,22 +52,11 @@ static double kPreferredIOBufferDuration = 0.01;
 // Called by TB.setupAudio()
 - (void) setupAudioSession:(CDVInvokedUrlCommand*)command{
     NSNumber* requestVideo = [command.arguments objectAtIndex:0];
+    NSError *error = nil;
+    NSUInteger audioOptions = 0;
 
     AVAudioSession *mySession = [AVAudioSession sharedInstance];
 
-    if ([requestVideo boolValue]) {
-        [mySession setMode:AVAudioSessionModeVideoChat error:nil];
-    } else {
-        [mySession setMode:AVAudioSessionModeVoiceChat error:nil];
-    }
-    
-    [mySession setPreferredSampleRate: kSampleRate error: nil];
-    [mySession setPreferredInputNumberOfChannels:1 error:nil];
-    [mySession setPreferredIOBufferDuration:kPreferredIOBufferDuration
-                                      error:nil];
-    
-    NSError *error = nil;
-    NSUInteger audioOptions = AVAudioSessionCategoryOptionMixWithOthers;
 #if !(TARGET_OS_TV)
     audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
     audioOptions |= AVAudioSessionCategoryOptionDefaultToSpeaker;
@@ -79,9 +68,23 @@ static double kPreferredIOBufferDuration = 0.01;
                withOptions:audioOptions
                      error:&error];
 #endif
+    if (error) NSLog(@"Audiosession setCategory %@",error);
+
+    if ([requestVideo boolValue]) {
+        [mySession setMode:AVAudioSessionModeVideoChat error: &error];
+    } else {
+        [mySession setMode:AVAudioSessionModeVoiceChat error: &error];
+    }
+    if (error) NSLog(@"Audiosession setMode %@",error);
     
-    if (error)
-        NSLog(@"Audiosession setCategory %@",error);
+    [mySession setPreferredIOBufferDuration:kPreferredIOBufferDuration error: &error];
+    if (error) NSLog(@"Audiosession setPreferredIOBufferDuration %@",error);
+    [mySession setPreferredSampleRate: kSampleRate error: &error];
+    if (error) NSLog(@"Audiosession setPreferredSampleRate %@",error);
+    [mySession setPreferredInputNumberOfChannels:1 error: &error];
+    if (error) NSLog(@"Audiosession setPreferredInputNumberOfChannels %@",error);
+    
+    
 }
 
 // Called by TB.initsession()
