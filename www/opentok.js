@@ -3,7 +3,7 @@ window.OT = {
     return 1;
   },
   setupAudio: function(hasVideo) {
-	return Cordova.exec(TBSuccess, TBError, OTPlugin, "setupAudio", [hasVideo]);
+	return Cordova.exec(TBSuccess, TBError, OTPlugin, "setupAudioSession", [hasVideo]);
   },
   initPublisher: function(targetElement, properties, completionHandler) {
     return new TBPublisher(targetElement, properties, completionHandler);
