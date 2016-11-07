@@ -109,20 +109,23 @@ class TBSession
       pdebug("Wrong publisher specified", {})
       return
     @alreadyPublishing = false
-    @publisher = null
     console.log("JS: Unpublish")
-    element = publisher.element
-    if(element)
-      if (element.parentNode)
-        element.parentNode.removeChild(element)
-      TBUpdateObjects()
-    onSuccess = (result) ->
-      publisher.destroy()
-      TBSuccess(result)
-    onError = (result) ->
-      publisher.destroy()
-      TBError(result)
-    return Cordova.exec(onSuccess, onError, OTPlugin, "unpublish", [] )
+    if @publisher?
+      element = publisher.element
+      @publisher = null
+      if(element)
+        if (element.parentNode)
+          element.parentNode.removeChild(element)
+        TBUpdateObjects()
+        onSuccess = (result) ->
+          publisher.destroy()
+          TBSuccess(result)
+        onError = (result) ->
+          publisher.destroy()
+          TBError(result)
+        return Cordova.exec(onSuccess, onError, OTPlugin, "unpublish", [] )
+    else
+        return false
   unsubscribe: (subscriber) ->
     console.log("JS: Unsubscribe")
     streamId = subscriber.streamId
@@ -135,7 +138,7 @@ class TBSession
       TBUpdateObjects()
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "unsubscribe", [streamId] )
 
-  constructor: (@apiKey, @sessionId, @speakerPhone) ->
+  constructor: (@apiKey, @sessionId, speakerPhone) ->
     @capabilities = {
       forceDisconnect: 0, # not implemented
       forceUnpublish: 0, # not implemented
@@ -147,7 +150,7 @@ class TBSession
     @streams = {}
     @alreadyPublishing = false
     OT.getHelper().eventing(@)
-    Cordova.exec(TBSuccess, TBSuccess, OTPlugin, "initSession", [@apiKey, @sessionId, @speakerPhone] )
+    Cordova.exec(TBSuccess, TBSuccess, OTPlugin, "initSession", [@apiKey, @sessionId, speakerPhone] )
   cleanUpDom: ->
     objects = document.getElementsByClassName('OT_root')
     while( objects.length > 0 )

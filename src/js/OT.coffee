@@ -18,7 +18,7 @@ window.OT =
   initPublisher: (targetElement, properties, completionHandler) ->
     return new TBPublisher(targetElement, properties, completionHandler)
   initSession: (apiKey, sessionId, speakerPhone ) ->
-    if( not sessionId? ) then @showError( "OT.initSession takes 3 parameters, your API Key and Session ID and speakerPhone" )
+    if( not sessionId? ) then @showError( "OT.initSession takes 2 or 3 parameters, your API Key and Session ID and speakerPhone" )
     return new TBSession(apiKey, sessionId, speakerPhone)
   log: (message) ->
     pdebug "TB LOG", message

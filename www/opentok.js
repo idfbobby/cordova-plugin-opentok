@@ -3,7 +3,7 @@ window.OT = {
     return 1;
   },
   setupAudio: function(hasVideo) {
-	return Cordova.exec(TBSuccess, TBError, OTPlugin, "setupAudioSession", [hasVideo]);
+    return Cordova.exec(TBSuccess, TBError, OTPlugin, "setupAudioSession", [hasVideo]);
   },
   initPublisher: function(targetElement, properties, completionHandler) {
     return new TBPublisher(targetElement, properties, completionHandler);
@@ -597,28 +597,28 @@ TBSession = (function() {
       return;
     }
     this.alreadyPublishing = false;
-    this.publisher = null;
     console.log("JS: Unpublish");
-    if (typeof this.publisher !== 'undefined') {
-		element = publisher.element;
-		if (element) {
-		  if (element.parentNode) {
-			element.parentNode.removeChild(element);
-		  }
-		  TBUpdateObjects();
-		}
-		onSuccess = function(result) {
-		  publisher.destroy();
-		  return TBSuccess(result);
-		};
-		onError = function(result) {
-		  publisher.destroy();
-		  return TBError(result);
-		};
-		return Cordova.exec(onSuccess, onError, OTPlugin, "unpublish", []);
-	} else {
-		return false;
-	}
+    if (this.publisher != null) {
+      element = publisher.element;
+      this.publisher = null;
+      if (element) {
+        if (element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+        TBUpdateObjects();
+        onSuccess = function(result) {
+          publisher.destroy();
+          return TBSuccess(result);
+        };
+        onError = function(result) {
+          publisher.destroy();
+          return TBError(result);
+        };
+        return Cordova.exec(onSuccess, onError, OTPlugin, "unpublish", []);
+      }
+    } else {
+      return false;
+    }
   };
 
   TBSession.prototype.unsubscribe = function(subscriber) {
