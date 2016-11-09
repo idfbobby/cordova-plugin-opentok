@@ -72,19 +72,19 @@ static double kPreferredIOBufferDuration = 0.01;
 
     if ([requestVideo boolValue]) {
         [mySession setMode:AVAudioSessionModeVideoChat error: &error];
+        if (error) NSLog(@"Audiosession setMode %@",error);
     } else {
         [mySession setMode:AVAudioSessionModeVoiceChat error: &error];
+        if (error) NSLog(@"Audiosession setMode %@",error);
+        
+        [mySession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:&error];
+        if (error) NSLog(@"Audiosession overrideOutputAudioPort %@",error);
     }
-    if (error) NSLog(@"Audiosession setMode %@",error);
-    
+
     [mySession setPreferredIOBufferDuration:kPreferredIOBufferDuration error: &error];
     if (error) NSLog(@"Audiosession setPreferredIOBufferDuration %@",error);
     [mySession setPreferredSampleRate: kSampleRate error: &error];
     if (error) NSLog(@"Audiosession setPreferredSampleRate %@",error);
-    [mySession setPreferredInputNumberOfChannels:1 error: &error];
-    if (error) NSLog(@"Audiosession setPreferredInputNumberOfChannels %@",error);
-    
-    
 }
 
 // Called by TB.stopAudio()
@@ -97,6 +97,25 @@ static double kPreferredIOBufferDuration = 0.01;
     if (error)
         NSLog(@"Audiosession setActive %@",error);
 }
+
+// Called by TB.loudSpeaker()
+- (void)loudSpeaker:(CDVInvokedUrlCommand *)command{
+    NSNumber* loudOnOff = [command.arguments objectAtIndex:0];
+
+    AVAudioSession *mySession = [AVAudioSession sharedInstance];
+    
+    [mySession setActive:NO error:nil];
+    
+    BOOL success;
+    NSError* error;
+    
+    success = [mySession overrideOutputAudioPort:[loudOnOff boolValue]?AVAudioSessionPortOverrideSpeaker:AVAudioSessionPortOverrideNone error:&error];
+    
+    if (!success)  NSLog(@"AVAudioSession error setting category:%@",error);
+    
+    [mySession setActive:YES error:nil];
+}
+
 
 // Called by TB.initsession()
 -(void)initSession:(CDVInvokedUrlCommand*)command{
