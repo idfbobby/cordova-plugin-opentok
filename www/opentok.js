@@ -8,6 +8,9 @@ window.OT = {
   stopAudio: function() {
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "stopAudioSession", []);
   },
+  loudSpeaker: function(loudOnOff) {
+    return Cordova.exec(TBSuccess, TBError, OTPlugin, "loudSpeaker", [loudOnOff]);
+  },
   initPublisher: function(targetElement, properties, completionHandler) {
     return new TBPublisher(targetElement, properties, completionHandler);
   },

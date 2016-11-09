@@ -73,6 +73,9 @@ static double kPreferredIOBufferDuration = 0.01;
     if ([requestVideo boolValue]) {
         [mySession setMode:AVAudioSessionModeVideoChat error: &error];
         if (error) NSLog(@"Audiosession setMode %@",error);
+
+        [mySession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
+        if (error) NSLog(@"Audiosession overrideOutputAudioPort %@",error);
     } else {
         [mySession setMode:AVAudioSessionModeVoiceChat error: &error];
         if (error) NSLog(@"Audiosession setMode %@",error);
