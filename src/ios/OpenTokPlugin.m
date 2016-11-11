@@ -241,8 +241,6 @@ static double kPreferredIOBufferDuration = 0.01;
 }
 - (void)destroyPublisher:(CDVInvokedUrlCommand *)command{
     NSLog(@"destroyPublisher");
-    // turn off proxymity mode
-    [UIDevice currentDevice].proximityMonitoringEnabled = NO;
 
     // Unpublish publisher
     [_session unpublish:_publisher error:nil];
@@ -565,6 +563,9 @@ static double kPreferredIOBufferDuration = 0.01;
 - (void)sessionDidDisconnect:(OTSession*)session{
     NSString* alertMessage = [NSString stringWithFormat:@"Session disconnected: (%@)", session.sessionId];
     NSLog(@"sessionDidDisconnect (%@)", alertMessage);
+
+    // turn off proxymity mode
+    [UIDevice currentDevice].proximityMonitoringEnabled = NO;
 
     // Setting up event object
     for ( id key in subscriberDictionary ) {
