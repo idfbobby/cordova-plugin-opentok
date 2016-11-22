@@ -473,8 +473,7 @@ static double kPreferredIOBufferDuration = 0.01;
     NSLog(@"iOS Connected to Session");
 
     /* disable idle timer to keep screen active */
-    [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
-
+    [UIApplication sharedApplication].idleTimerDisabled = YES;
     
     NSMutableDictionary* sessionDict = [[NSMutableDictionary alloc] init];
 
@@ -569,7 +568,7 @@ static double kPreferredIOBufferDuration = 0.01;
     NSLog(@"sessionDidDisconnect (%@)", alertMessage);
 
     // turn off proxymity mode and enable idle timer
-    [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+    [UIApplication sharedApplication].idleTimerDisabled = NO;
     [UIDevice currentDevice].proximityMonitoringEnabled = NO;
 
     // Setting up event object
