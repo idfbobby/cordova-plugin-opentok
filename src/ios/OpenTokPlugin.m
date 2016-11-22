@@ -94,7 +94,7 @@ static double kPreferredIOBufferDuration = 0.01;
     // Get Parameters
     NSString* apiKey = [command.arguments objectAtIndex:0];
     NSString* sessionId = [command.arguments objectAtIndex:1];
-
+    
     NSNumber* speakerPhone = [command.arguments objectAtIndex:2];
     if ([speakerPhone boolValue]) {
         [UIDevice currentDevice].proximityMonitoringEnabled = NO;
@@ -472,6 +472,10 @@ static double kPreferredIOBufferDuration = 0.01;
 - (void)sessionDidConnect:(OTSession*)session{
     NSLog(@"iOS Connected to Session");
 
+    /* disable idle timer to keep screen active */
+    [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+
+    
     NSMutableDictionary* sessionDict = [[NSMutableDictionary alloc] init];
 
     // SessionConnectionStatus
@@ -564,7 +568,8 @@ static double kPreferredIOBufferDuration = 0.01;
     NSString* alertMessage = [NSString stringWithFormat:@"Session disconnected: (%@)", session.sessionId];
     NSLog(@"sessionDidDisconnect (%@)", alertMessage);
 
-    // turn off proxymity mode
+    // turn off proxymity mode and enable idle timer
+    [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
     [UIDevice currentDevice].proximityMonitoringEnabled = NO;
 
     // Setting up event object
