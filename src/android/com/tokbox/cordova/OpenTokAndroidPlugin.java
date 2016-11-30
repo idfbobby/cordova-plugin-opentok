@@ -24,6 +24,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.opentok.android.AudioDeviceManager;
+import com.opentok.android.BaseAudioDevice;
 import com.opentok.android.Connection;
 import com.opentok.android.OpentokError;
 import com.opentok.android.Publisher;
@@ -70,11 +72,11 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
 
     public void updateZIndices(){
       allStreamViews =  new ArrayList<RunnableUpdateViews>();
-      for (Map.Entry<String, RunnableSubscriber> entry : subscriberCollection.entrySet() ) { 
-        allStreamViews.add( entry.getValue() ); 
+      for (Map.Entry<String, RunnableSubscriber> entry : subscriberCollection.entrySet() ) {
+        allStreamViews.add( entry.getValue() );
       }
       if( myPublisher != null ){
-        allStreamViews.add( myPublisher ); 
+        allStreamViews.add( myPublisher );
       }
       Collections.sort( allStreamViews, new CustomComparator() );
 
@@ -89,7 +91,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
 
     public int getZIndex(){
       try{
-        return mProperty.getInt(5); 
+        return mProperty.getInt(5);
       }catch( Exception e ) {
         return 0;
       }
@@ -162,7 +164,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
         this.mPublisher.destroy();
         this.mPublisher = null;
     }
-    
+
     public void run() {
       Log.i(TAG, "view running on UIVIEW!!!");
       if( mPublisher == null ){
@@ -181,6 +183,9 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
           // Camera is swapped in streamCreated event
           if( compareStrings(this.mProperty.getString(7), "false") ){
             mPublisher.setPublishVideo(false); // default is true
+            AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
+          } else {
+            AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
           }
           if( compareStrings(this.mProperty.getString(6), "false") ){
             mPublisher.setPublishAudio(false); // default is true
@@ -195,12 +200,12 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
       }
       super.run();
     }
-    
+
     // event listeners
     @Override
     public void onError(PublisherKit arg0, OpentokError arg1) {
       // TODO Auto-generated method stub
-      
+
     }
 
     @Override
@@ -209,7 +214,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
       try{
         if( compareStrings(this.mProperty.getString(8), "back") ){
           Log.i(TAG, "swapping camera");
-          mPublisher.swapCamera(); // default is front
+          mPublisher.cycleCamera(); // default is front
         }
       }catch(Exception e){
         Log.i(TAG, "error when trying to retrieve cameraName property");
@@ -227,13 +232,13 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
     @Override
     public void onCameraChanged(Publisher arg0, int arg1) {
       // TODO Auto-generated method stub
-      
+
     }
 
     @Override
     public void onCameraError(Publisher arg0, OpentokError arg1) {
       // TODO Auto-generated method stub
-      
+
     }
 
   }
@@ -253,7 +258,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
     public void setPropertyFromArray( JSONArray args ){
       this.mProperty = args;
     }
-    
+
     public void removeStreamView(){
       ViewGroup frame = (ViewGroup) cordova.getActivity().findViewById(android.R.id.content);
       frame.removeView( this.mView );
@@ -281,13 +286,13 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
       frame.removeView( this.mView );
       mSubscriber = null;
     }
-    
+
 
     // listeners
     @Override
     public void onVideoDataReceived(SubscriberKit arg0) {
       // TODO Auto-generated method stub
-      
+
     }
 
     @Override
@@ -328,25 +333,25 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
   @Override
   public void onVideoDisableWarning(SubscriberKit arg0) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void onVideoDisableWarningLifted(SubscriberKit arg0) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void onVideoDisabled(SubscriberKit arg0, String arg1) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void onVideoEnabled(SubscriberKit arg0, String arg1) {
     // TODO Auto-generated method stub
-    
+
   }
   }
 
@@ -384,19 +389,22 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
       // TB Methods
       if( action.equals("initPublisher")){
         myPublisher = new RunnablePublisher( args );
-      }else if( action.equals( "destroyPublisher" )){
-      if( myPublisher != null ){
-         cordova.getActivity().runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                myPublisher.destroyPublisher();
-                myPublisher = null;
-             }
-         });
 
-         callbackContext.success();
-         return true;
-      }
+        callbackContext.success();
+        return true;
+      }else if( action.equals( "destroyPublisher" )){
+        if( myPublisher != null ){
+           cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                  myPublisher.destroyPublisher();
+                  myPublisher = null;
+               }
+           });
+
+           callbackContext.success();
+           return true;
+        }
       }else if( action.equals( "initSession" )){
         Log.i( TAG, "created new session with data: "+args.toString());
         mSession = new Session(this.cordova.getActivity().getApplicationContext(), args.getString(0), args.getString(1));
@@ -404,7 +412,12 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
         mSession.setConnectionListener(this);
         mSession.setSignalListener(this);
         mSession.setStreamPropertiesListener(this);
-        
+        if ((args.length() == 3) && (args.getBoolean(2))) {
+          AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
+        } else {
+          AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
+        }
+
       // publisher methods
       }else if( action.equals( "setCameraPosition")){
         String cameraId = args.getString(0);
@@ -429,7 +442,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
         }
         Log.i(TAG, "setting publishVideo");
         myPublisher.mPublisher.setPublishVideo( publishVideo );
-        
+
       // session Methods
       }else if( action.equals( "addEvent" )){
         Log.i( TAG, "adding new event - " + args.getString(0));
@@ -443,6 +456,9 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
         if( sessionConnected ){
           Log.i( TAG, "publisher is publishing" );
           myPublisher.startPublishing();
+
+          callbackContext.success();
+          return true;
         }
       }else if( action.equals( "signal" )){
         Connection c = connectionCollection.get(args.getString(2));
@@ -463,19 +479,34 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
         Log.i( TAG, "subscribe command called");
         Log.i( TAG, "subscribe data: " + args.toString() );
         Stream stream = streamCollection.get( args.getString(0) );
-        RunnableSubscriber runsub = new RunnableSubscriber( args, stream ); 
+        RunnableSubscriber runsub = new RunnableSubscriber( args, stream );
         subscriberCollection.put(stream.getStreamId(), runsub);
-      }else if( action.equals( "updateView" )){
-        if( args.getString(0).equals("TBPublisher") && myPublisher != null && sessionConnected ){
-          Log.i( TAG, "updating view for publisher" );
+      }else if( action.equals( "updateView" )) {
+        if(args.getString(0).equals("TBPublisher") && myPublisher != null && sessionConnected){
+          Log.i(TAG, "updating view for publisher");
           myPublisher.setPropertyFromArray(args);
           cordova.getActivity().runOnUiThread(myPublisher);
         }else{
-          RunnableSubscriber runsub = subscriberCollection.get( args.getString(0) );
-          if( runsub != null ){
-            runsub.setPropertyFromArray( args );
+          RunnableSubscriber runsub = subscriberCollection.get(args.getString(0));
+          if (runsub != null) {
+            runsub.setPropertyFromArray(args);
             cordova.getActivity().runOnUiThread(runsub);
           }
+        }
+
+      // Audio methods
+      }else if( action.equals( "setupAudioSession" )){
+        if (args.getBoolean(0)) {
+          AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
+        } else {
+          AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
+        }
+      }else if( action.equals( "stopAudioSession" )){
+      }else if( action.equals( "loudSpeaker" )){
+        if (args.getBoolean(0)) {
+          AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
+        } else {
+          AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
         }
       }else if( action.equals( "exceptionHandler" )){
 
@@ -494,8 +525,8 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
   // sessionListener
   @Override
   public void onConnected(Session arg0) {
-    Log.i(TAG, "session connected, triggering sessionConnected Event. My Cid is: "+ 
-    mSession.getConnection().getConnectionId()    );      
+    Log.i(TAG, "session connected, triggering sessionConnected Event. My Cid is: "+
+    mSession.getConnection().getConnectionId()    );
     sessionConnected = true;
 
     connectionCollection.put(mSession.getConnection().getConnectionId(), mSession.getConnection());
@@ -512,7 +543,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
   @Override
   public void onDisconnected(Session arg0) {
     sessionConnected = false;
-    
+
     cordova.getActivity().runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -521,11 +552,11 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
             myPublisher.destroyPublisher();
             myPublisher = null;
           }
-          for (Map.Entry<String, RunnableSubscriber> entry : subscriberCollection.entrySet() ) { 
+          for (Map.Entry<String, RunnableSubscriber> entry : subscriberCollection.entrySet() ) {
               if (null != parent) {
                 parent.removeView( entry.getValue().mView  );
               }
-          } 
+          }
      }
    });
 
@@ -534,7 +565,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
     connectionCollection.clear();
     streamCollection.clear();
 
-    JSONObject data = new JSONObject();   
+    JSONObject data = new JSONObject();
     try{
       data.put("reason", "clientDisconnected");
     }catch (JSONException e) {}
@@ -571,7 +602,7 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
   
   // connectionListener
   public void onConnectionCreated(Session arg0, Connection arg1) {
-    Log.i(TAG, "connectionCreated");   
+    Log.i(TAG, "connectionCreated");
 
     connectionCollection.put(arg1.getConnectionId(), arg1);
 
@@ -613,20 +644,20 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
   @Override
   public void onStreamHasAudioChanged(Session arg0, Stream arg1, boolean arg2) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void onStreamHasVideoChanged(Session arg0, Stream arg1, boolean arg2) {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
   public void onStreamVideoDimensionsChanged(Session arg0, Stream arg1,
       int arg2, int arg3) {
     // TODO Auto-generated method stub
-    
+
   }
 
   
@@ -655,12 +686,12 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
       data.put("stream", stream);
       triggerJSEvent( eventType, "streamCreated", data);
     }catch (JSONException e) {}
-    
+
     Log.i(TAG, "stream received done");
   }
   public JSONObject createDataFromConnection( Connection arg1 ){
     JSONObject connection = new JSONObject();
-    
+
     try{
       connection.put("connectionId", arg1.getConnectionId());
       connection.put("creationTime", arg1.getCreationTime());
@@ -685,13 +716,13 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
     return stream;
   }
   public void triggerJSEvent(String event, String type, JSONObject data ){
-    JSONObject message = new JSONObject();       
+    JSONObject message = new JSONObject();
 
     try{
       message.put("eventType", type);
       message.put("data", data);
     }catch (JSONException e) {}
-    
+
     PluginResult myResult = new PluginResult(PluginResult.Status.OK, message);
     myResult.setKeepCallback(true);
     myEventListeners.get(event).sendPluginResult(myResult);
@@ -700,13 +731,13 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
   @Override
   public void onError(PublisherKit arg0, OpentokError arg1) {
     // TODO Auto-generated method stub
-    
+
   }
   
   @Override
   public void onStreamCreated(PublisherKit arg0, Stream arg1) {
     // TODO Auto-generated method stub
-    
+
   }
   
   @Override
@@ -721,7 +752,6 @@ public class OpenTokAndroidPlugin extends CordovaPlugin implements
   public void onStreamVideoTypeChanged(Session arg0, Stream arg1,
       StreamVideoType arg2) {
     // TODO Auto-generated method stub
-    
+
   }
 }
-
