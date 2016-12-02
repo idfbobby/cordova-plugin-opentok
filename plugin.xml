@@ -12,8 +12,8 @@
     <platform name="android">
       <framework src="build-extras.gradle" custom="true" type="gradleReference" />
       <asset src="www/opentok.js" target="opentok.js" />
-		<source-file src="src/android/com/tokbox/cordova/OpenTokAndroidPlugin.java"
-		target-dir="src/com/tokbox/cordova/" />
+		<source-file src="src/android/com/tokbox/cordova/OTDefaultAudioDevice.java" target-dir="src/com/tokbox/cordova/" />
+		<source-file src="src/android/com/tokbox/cordova/OpenTokAndroidPlugin.java" target-dir="src/com/tokbox/cordova/" />
 
 		<config-file target="AndroidManifest.xml" parent="/manifest">
 			<uses-permission android:name="android.permission.CAMERA" />
