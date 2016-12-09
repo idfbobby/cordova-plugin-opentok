@@ -19,8 +19,8 @@ window.OT =
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "stopAudioSession", [] )
   loudSpeaker: (loudOnOff) ->
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "loudSpeaker", [loudOnOff] )
-  requestAccess: (device) ->
-    return Cordova.exec(TBSuccess, TBError, OTPlugin, "requestAccess", [device] )
+  requestAccess: (device, completionHandler) ->
+    return Cordova.exec(completionHandler, TBError, OTPlugin, "requestAccess", [device] )
   initPublisher: (targetElement, properties, completionHandler) ->
     return new TBPublisher(targetElement, properties, completionHandler)
   initSession: (apiKey, sessionId, speakerPhone ) ->

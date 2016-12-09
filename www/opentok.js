@@ -11,8 +11,8 @@ window.OT = {
   loudSpeaker: function(loudOnOff) {
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "loudSpeaker", [loudOnOff]);
   },
-  requestAccess: function(device) {
-    return Cordova.exec(TBSuccess, TBError, OTPlugin, "requestAccess", [device]);
+  requestAccess: function(device, completionHandler) {
+    return Cordova.exec(completionHandler, TBError, OTPlugin, "requestAccess", [device]);
   },
   initPublisher: function(targetElement, properties, completionHandler) {
     return new TBPublisher(targetElement, properties, completionHandler);
