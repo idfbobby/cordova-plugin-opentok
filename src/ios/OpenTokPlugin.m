@@ -87,18 +87,18 @@
 // Called by TB.requestAccess()
 -(void)requestAccess:(CDVInvokedUrlCommand*)command{
     NSLog(@"requestAccess...");
-
+    
     NSString* requestDevice = [command.arguments objectAtIndex:0];
     NSString *mediaType;
-
+    
     CDVPluginResult* pluginResult = nil;
-
-    if ([requestDevice == "camera"]) {
-        mediaType = AVMediaTypeVideo
+    
+    if ([requestDevice isEqualToString:@"camera"]) {
+        mediaType = AVMediaTypeVideo;
     } else {
         mediaType = AVMediaTypeAudio;
     }
-        
+    
     AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
     
     if (authStatus == AVAuthorizationStatusAuthorized) {
@@ -106,7 +106,7 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     } else if(authStatus == AVAuthorizationStatusDenied){
         [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         }];
     } else if(authStatus == AVAuthorizationStatusRestricted){
@@ -114,7 +114,7 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     } else if(authStatus == AVAuthorizationStatusNotDetermined){
         [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         }];
     } else {
