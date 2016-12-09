@@ -27,8 +27,6 @@
 
 @synthesize exceptionId;
 
-static double kPreferredIOBufferDuration = 0.01;
-
 #pragma mark -
 #pragma mark Cordova Methods
 -(void) pluginInitialize{
@@ -53,7 +51,7 @@ static double kPreferredIOBufferDuration = 0.01;
 // Called by TB.setupAudio()
 - (void)setupAudioSession:(CDVInvokedUrlCommand*)command{
     NSNumber* requestVideo = [command.arguments objectAtIndex:0];
-
+    
     [[OTDefaultAudioDevice sharedInstance]setupAudioSession:[requestVideo boolValue]];
 }
 
@@ -61,9 +59,9 @@ static double kPreferredIOBufferDuration = 0.01;
 -(void)stopAudioSession:(CDVInvokedUrlCommand*)command{
     AVAudioSession *mySession = [AVAudioSession sharedInstance];
     NSError *error = nil;
-
+    
     [mySession setActive:NO error:&error];
-
+    
     if (error)
         NSLog(@"Audiosession setActive %@",error);
 }
@@ -71,17 +69,17 @@ static double kPreferredIOBufferDuration = 0.01;
 // Called by TB.loudSpeaker()
 - (void)loudSpeaker:(CDVInvokedUrlCommand *)command{
     NSNumber* loudOnOff = [command.arguments objectAtIndex:0];
-
+    
     AVAudioSession *mySession = [AVAudioSession sharedInstance];
-
+    
     NSError* error;
-
+    
     AVAudioSessionPortDescription *routePort = mySession.currentRoute.outputs.firstObject;
     NSString *portType = routePort.portType;
     NSLog(@"Audiosession port:%@", portType);
-
+    
     [mySession overrideOutputAudioPort:[loudOnOff boolValue]?AVAudioSessionPortOverrideSpeaker:AVAudioSessionPortOverrideNone error:&error];
-
+    
     if (error)
         NSLog(@"Audiosession overrideOutputAudioPort:%@",error);
 }
@@ -90,7 +88,7 @@ static double kPreferredIOBufferDuration = 0.01;
 // Called by TB.initsession()
 -(void)initSession:(CDVInvokedUrlCommand*)command{
     NSLog(@"initSession...");
-
+    
     // Get Parameters
     NSString* apiKey = [command.arguments objectAtIndex:0];
     NSString* sessionId = [command.arguments objectAtIndex:1];
@@ -101,21 +99,21 @@ static double kPreferredIOBufferDuration = 0.01;
     } else {
         [UIDevice currentDevice].proximityMonitoringEnabled = YES;
     }
-
+    
     // Create audio device
     OTDefaultAudioDevice* audioDevice = [OTDefaultAudioDevice sharedInstance];
     [audioDevice setSpeakerPhone:[speakerPhone boolValue]];
     [OTAudioDeviceManager setAudioDevice:audioDevice];
-
+    
     // Create Session
     _session = [[OTSession alloc] initWithApiKey: apiKey sessionId:sessionId delegate:self];
     NSLog(@"initSession done");
-
+    
     // Initialize Dictionary, contains DOM info for every stream
     subscriberDictionary = [[NSMutableDictionary alloc] init];
     streamDictionary = [[NSMutableDictionary alloc] init];
     connectionDictionary = [[NSMutableDictionary alloc] init];
-
+    
     // Return Result
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -127,7 +125,7 @@ static double kPreferredIOBufferDuration = 0.01;
     [self.commandDelegate runInBackground:^{
         BOOL bpubAudio = YES;
         BOOL bpubVideo = YES;
-
+        
         // Get Parameters
         NSString* name = [command.arguments objectAtIndex:0];
         int top = [[command.arguments objectAtIndex:1] intValue];
@@ -136,7 +134,7 @@ static double kPreferredIOBufferDuration = 0.01;
         int height = [[command.arguments objectAtIndex:4] intValue];
         int zIndex = [[command.arguments objectAtIndex:5] intValue];
         int borderRadius = [[command.arguments objectAtIndex:8] intValue];
-
+        
         NSString* publishAudio = [command.arguments objectAtIndex:6];
         if ([publishAudio isEqualToString:@"false"]) {
             bpubAudio = NO;
@@ -145,12 +143,12 @@ static double kPreferredIOBufferDuration = 0.01;
         if ([publishVideo isEqualToString:@"false"]) {
             bpubVideo = NO;
         }
-
+        
         // Publish and set View
         _publisher = [[OTPublisher alloc] initWithDelegate:self name:name];
         [_publisher setPublishAudio:bpubAudio];
         [_publisher setPublishVideo:bpubVideo];
-
+        
         [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
             [self.webView.superview addSubview:_publisher.view];
             [_publisher.view setFrame:CGRectMake(left, top, width, height)];
@@ -163,9 +161,9 @@ static double kPreferredIOBufferDuration = 0.01;
             }
             _publisher.view.layer.cornerRadius = borderRadius;
             _publisher.view.clipsToBounds = borderRadius ? YES : NO;
-
+            
             NSLog(@"initPublisher done");
-
+            
             // Return to Javascript
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -182,9 +180,9 @@ static double kPreferredIOBufferDuration = 0.01;
     int height = [[command.arguments objectAtIndex:4] intValue];
     int zIndex = [[command.arguments objectAtIndex:5] intValue];
     int borderRadius = [[command.arguments objectAtIndex:8] intValue];
-
+    
     //NSLog(@"updateView: %@, left: %d, top: %d, width: %d, height: %d, zIndex: %d", sid, left, top, width, height, zIndex);
-
+    
     if ([sid isEqualToString:@"TBPublisher"]) {
         _publisher.view.frame = CGRectMake(left, top, width, height);
         _publisher.view.layer.zPosition = zIndex;
@@ -192,7 +190,7 @@ static double kPreferredIOBufferDuration = 0.01;
         _publisher.view.clipsToBounds = borderRadius ? YES : NO;
     }
     else {
-
+        
         // Pulls the subscriber object from dictionary to prepare it for update
         OTSubscriber* streamInfo = [subscriberDictionary objectForKey:sid];
         if (streamInfo) {
@@ -203,7 +201,7 @@ static double kPreferredIOBufferDuration = 0.01;
             streamInfo.view.clipsToBounds = borderRadius ? YES : NO;
         }
     }
-
+    
     CDVPluginResult* callbackResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [callbackResult setKeepCallbackAsBool:YES];
     //[self.commandDelegate sendPluginResult:callbackResult toSuccessCallbackString:command.callbackId];
@@ -232,7 +230,7 @@ static double kPreferredIOBufferDuration = 0.01;
 - (void)setCameraPosition:(CDVInvokedUrlCommand*)command{
     NSString* publishCameraPosition = [command.arguments objectAtIndex:0];
     NSLog(@"iOS Altering Video camera position, %@", publishCameraPosition);
-
+    
     if ([publishCameraPosition isEqualToString:@"back"]) {
         [_publisher setCameraPosition:AVCaptureDevicePositionBack];
     } else if ([publishCameraPosition isEqualToString:@"front"]) {
@@ -241,27 +239,27 @@ static double kPreferredIOBufferDuration = 0.01;
 }
 - (void)destroyPublisher:(CDVInvokedUrlCommand *)command{
     NSLog(@"destroyPublisher");
-
+    
     // Unpublish publisher
     [_session unpublish:_publisher error:nil];
-
+    
     // Remove publisher view
     if (_publisher) {
         [_publisher.view removeFromSuperview];
     }
-
+    
     [self.commandDelegate runInBackground:^{
         OTError *error;
         NSLog(@"Session.unpublish");
         [_session unpublish:_publisher error:nil];
-
+        
         if (error) {
             NSLog(@"Session.unpublish failed: %@", [error localizedDescription]);
         }
         else {
             NSLog(@"Session.unpublish done");
         }
-
+        
         CDVPluginResult* pluginResult = error ?
         [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]] :
         [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -275,18 +273,18 @@ static double kPreferredIOBufferDuration = 0.01;
     NSLog(@"Session.connect");
     [self.commandDelegate runInBackground:^{
         OTError *error;
-
+        
         // Get Parameters
         NSString* tbToken = [command.arguments objectAtIndex:0];
         [_session connectWithToken:tbToken error:&error];
-
+        
         if (error) {
             NSLog(@"Session.connect failed: %@", [error localizedDescription]);
         }
         else {
             NSLog(@"Session.connect done");
         }
-
+        
         CDVPluginResult* pluginResult = error ?
         [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]] :
         [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -300,14 +298,14 @@ static double kPreferredIOBufferDuration = 0.01;
     [self.commandDelegate runInBackground:^{
         OTError *error;
         [_session disconnect:&error];
-
+        
         if (error) {
             NSLog(@"Session.disconnect failed: %@", [error localizedDescription]);
         }
         else {
             NSLog(@"Session.disconnect done");
         }
-
+        
         CDVPluginResult* pluginResult = error ?
         [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]] :
         [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -321,14 +319,14 @@ static double kPreferredIOBufferDuration = 0.01;
     [self.commandDelegate runInBackground:^{
         OTError *error;
         [_session publish:_publisher error:&error];
-
+        
         if (error) {
             NSLog(@"Session.publish failed: %@", [error localizedDescription]);
         }
         else {
             NSLog(@"Session.publish done");
         }
-
+        
         CDVPluginResult* pluginResult = error ?
         [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]] :
         [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -342,14 +340,14 @@ static double kPreferredIOBufferDuration = 0.01;
     [self.commandDelegate runInBackground:^{
         OTError *error;
         [_session unpublish:_publisher error:nil];
-
+        
         if (error) {
             NSLog(@"Session.unpublish failed: %@", [error localizedDescription]);
         }
         else {
             NSLog(@"Session.unpublish done");
         }
-
+        
         CDVPluginResult* pluginResult = error ?
         [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]] :
         [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -360,23 +358,23 @@ static double kPreferredIOBufferDuration = 0.01;
 // Called by session.subscribe(streamId, top, left)
 - (void)subscribe:(CDVInvokedUrlCommand*)command{
     NSLog(@"Session.subscribe...");
-
+    
     // Get Parameters
     NSString* sid = [command.arguments objectAtIndex:0];
-
+    
     int top = [[command.arguments objectAtIndex:1] intValue];
     int left = [[command.arguments objectAtIndex:2] intValue];
     int width = [[command.arguments objectAtIndex:3] intValue];
     int height = [[command.arguments objectAtIndex:4] intValue];
     int zIndex = [[command.arguments objectAtIndex:5] intValue];
     int borderRadius = [[command.arguments objectAtIndex:8] intValue];
-
+    
     // Acquire Stream, then create a subscriber object and put it into dictionary
     OTStream* myStream = [streamDictionary objectForKey:sid];
     OTSubscriber* sub = [[OTSubscriber alloc] initWithStream:myStream delegate:self];
     OTError *error;
     [_session subscribe:sub error:&error];
-
+    
     if ([[command.arguments objectAtIndex:6] isEqualToString:@"false"]) {
         [sub setSubscribeToAudio: NO];
     }
@@ -384,7 +382,7 @@ static double kPreferredIOBufferDuration = 0.01;
         [sub setSubscribeToVideo: NO];
     }
     [subscriberDictionary setObject:sub forKey:myStream.streamId];
-
+    
     [sub.view setFrame:CGRectMake(left, top, width, height)];
     if (zIndex>0) {
         sub.view.layer.zPosition = zIndex;
@@ -392,14 +390,14 @@ static double kPreferredIOBufferDuration = 0.01;
     sub.view.layer.cornerRadius = borderRadius;
     sub.view.clipsToBounds = borderRadius ? YES : NO;
     [self.webView.superview addSubview:sub.view];
-
+    
     if (error) {
         NSLog(@"Session.subscribe failed: %@", [error localizedDescription]);
     }
     else {
         NSLog(@"Session.subscribe done");
     }
-
+    
     CDVPluginResult* pluginResult = error ?
     [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]] :
     [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -409,25 +407,25 @@ static double kPreferredIOBufferDuration = 0.01;
 // Called by session.unsubscribe(streamId, top, left)
 - (void)unsubscribe:(CDVInvokedUrlCommand*)command{
     NSLog(@"Session.unsubscribe...");
-
+    
     //Get Parameters
     NSString* sid = [command.arguments objectAtIndex:0];
-
+    
     OTSubscriber * subscriber = [subscriberDictionary objectForKey:sid];
     [subscriber.view removeFromSuperview];
     [subscriberDictionary removeObjectForKey:sid];
-
+    
     [self.commandDelegate runInBackground:^{
         OTError *error;
         [_session unsubscribe:subscriber error:&error];
-
+        
         if (error) {
             NSLog(@"Session.unsubscribe failed: %@", [error localizedDescription]);
         }
         else {
             NSLog(@"Session.unsubscribe done");
         }
-
+        
         CDVPluginResult* pluginResult = error ?
         [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]] :
         [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -455,7 +453,7 @@ static double kPreferredIOBufferDuration = 0.01;
     NSString* streamId = sub.stream.streamId;
     [eventData setObject:streamId forKey:@"streamId"];
     [self triggerJSEvent: @"sessionEvents" withType: @"subscribedToStream" withData: eventData];
-
+    
 }
 - (void)subscriber:(OTSubscriber*)subscrib didFailWithError:(OTError*)error{
     NSLog(@"subscriber didFailWithError %@", error);
@@ -471,12 +469,12 @@ static double kPreferredIOBufferDuration = 0.01;
 #pragma mark Session Delegates
 - (void)sessionDidConnect:(OTSession*)session{
     NSLog(@"iOS Connected to Session");
-
+    
     /* disable idle timer to keep screen active */
     [UIApplication sharedApplication].idleTimerDisabled = YES;
     
     NSMutableDictionary* sessionDict = [[NSMutableDictionary alloc] init];
-
+    
     // SessionConnectionStatus
     NSString* connectionStatus = @"";
     if (session.sessionConnectionStatus==OTSessionConnectionStatusConnected) {
@@ -489,28 +487,28 @@ static double kPreferredIOBufferDuration = 0.01;
         connectionStatus = @"OTSessionConnectionStatusFailed";
     }
     [sessionDict setObject:connectionStatus forKey:@"sessionConnectionStatus"];
-
+    
     // SessionId
     [sessionDict setObject:session.sessionId forKey:@"sessionId"];
-
+    
     [connectionDictionary setObject: session.connection forKey: session.connection.connectionId];
-
-
+    
+    
     // After session is successfully connected, the connection property is available
     NSMutableDictionary* eventData = [[NSMutableDictionary alloc] init];
     [eventData setObject:@"status" forKey:@"connected"];
     NSMutableDictionary* connectionData = [self createDataFromConnection: session.connection];
     [eventData setObject: connectionData forKey: @"connection"];
-
-
+    
+    
     NSLog(@"object for session is %@", sessionDict);
-
+    
     // After session dictionary is constructed, return the result!
     //    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:sessionDict];
     //    NSString* sessionConnectCallback = [callbackList objectForKey:@"sessSessionConnected"];
     //    [self.commandDelegate sendPluginResult:pluginResult callbackId:sessionConnectCallback];
-
-
+    
+    
     [self triggerJSEvent: @"sessionEvents" withType: @"sessionConnected" withData: eventData];
 }
 
@@ -539,7 +537,7 @@ static double kPreferredIOBufferDuration = 0.01;
 }
 - (void)session:(OTSession*)session streamDestroyed:(OTStream *)stream{
     NSLog(@"iOS Drop Stream");
-
+    
     OTSubscriber * subscriber = [subscriberDictionary objectForKey:stream.streamId];
     if (subscriber) {
         NSLog(@"subscriber found, unsubscribing");
@@ -556,7 +554,7 @@ static double kPreferredIOBufferDuration = 0.01;
     NSMutableDictionary* err = [[NSMutableDictionary alloc] init];
     [err setObject:error.localizedDescription forKey:@"message"];
     [err setObject:code forKey:@"code"];
-
+    
     if (self.exceptionId) {
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: err];
         [pluginResult setKeepCallbackAsBool:YES];
@@ -566,11 +564,11 @@ static double kPreferredIOBufferDuration = 0.01;
 - (void)sessionDidDisconnect:(OTSession*)session{
     NSString* alertMessage = [NSString stringWithFormat:@"Session disconnected: (%@)", session.sessionId];
     NSLog(@"sessionDidDisconnect (%@)", alertMessage);
-
+    
     // turn off proxymity mode and enable idle timer
     [UIApplication sharedApplication].idleTimerDisabled = NO;
     [UIDevice currentDevice].proximityMonitoringEnabled = NO;
-
+    
     // Setting up event object
     for ( id key in subscriberDictionary ) {
         OTSubscriber* aStream = [subscriberDictionary objectForKey:key];
@@ -580,14 +578,14 @@ static double kPreferredIOBufferDuration = 0.01;
     if( _publisher ){
         [_publisher.view removeFromSuperview];
     }
-
+    
     // Setting up event object
     NSMutableDictionary* eventData = [[NSMutableDictionary alloc] init];
     [eventData setObject:@"clientDisconnected" forKey:@"reason"];
     [self triggerJSEvent: @"sessionEvents" withType: @"sessionDisconnected" withData: eventData];
 }
 -(void) session:(OTSession *)session receivedSignalType:(NSString *)type fromConnection:(OTConnection *)connection withString:(NSString *)string{
-
+    
     NSLog(@"iOS Session Received signal from Connection: %@ with id %@", connection, [connection connectionId]);
     NSMutableDictionary* data = [[NSMutableDictionary alloc] init];
     [data setObject: type forKey: @"type"];
@@ -611,7 +609,7 @@ static double kPreferredIOBufferDuration = 0.01;
     NSLog(@"iOS Publisher didFailWithError");
     NSMutableDictionary* err = [[NSMutableDictionary alloc] init];
     [err setObject:error.localizedDescription forKey:@"message"];
-
+    
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: err];
     [pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.exceptionId];
@@ -627,7 +625,7 @@ static double kPreferredIOBufferDuration = 0.01;
 }
 - (void)triggerStreamDestroyed: (OTStream*) stream withEventType: (NSString*) eventType{
     [streamDictionary removeObjectForKey: stream.streamId];
-
+    
     NSMutableDictionary* data = [[NSMutableDictionary alloc] init];
     NSMutableDictionary* streamData = [self createDataFromStream: stream];
     [data setObject: streamData forKey: @"stream"];
@@ -658,10 +656,10 @@ static double kPreferredIOBufferDuration = 0.01;
     NSMutableDictionary* message = [[NSMutableDictionary alloc] init];
     [message setObject:type forKey:@"eventType"];
     [message setObject:data forKey:@"data"];
-
+    
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
     [pluginResult setKeepCallbackAsBool:YES];
-
+    
     NSString* callbackId = [callbackList objectForKey:event];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
 }
@@ -669,8 +667,8 @@ static double kPreferredIOBufferDuration = 0.01;
 
 
 /***** Notes
-
-
+ 
+ 
  NSString *stringObtainedFromJavascript = [command.arguments objectAtIndex:0];
  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString: stringObtainedFromJavascript];
  
@@ -680,7 +678,7 @@ static double kPreferredIOBufferDuration = 0.01;
  //Call  the Failure Javascript function
  [self.commandDelegate [pluginResult toErrorCallbackString:self.callbackID]];
  }
-
+ 
  ******/
 
 

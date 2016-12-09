@@ -38,7 +38,7 @@ options:NSNumericSearch] != NSOrderedDescending)
 #define kSampleRate 48000
 #endif
 
-#define OT_ENABLE_AUDIO_DEBUG 1
+#define OT_ENABLE_AUDIO_DEBUG 0
 
 #if OT_ENABLE_AUDIO_DEBUG
 #define OT_AUDIO_DEBUG(fmt, ...) NSLog(fmt, ##__VA_ARGS__)
@@ -98,7 +98,7 @@ static OSStatus playout_cb(void *ref_con,
     BOOL _bluetoothDeviceAvailable;
     
     BOOL _speakerPhone;
-
+    
     id _audioBus;
     
     AudioBufferList *buffer_list;
@@ -293,7 +293,7 @@ static OSStatus playout_cb(void *ref_con,
                 return NO;
             }
         }
-
+        
         OSStatus result = AudioOutputUnitStart(recording_voice_unit);
         if (CheckError(result, @"startCapture.AudioOutputUnitStart")) {
             _recording = NO;
@@ -418,7 +418,7 @@ static NSString* FormatError(OSStatus error)
     else
     {
         // no, format it as an integer
-        return [NSString stringWithFormat:@"%d", error];
+        return [NSString stringWithFormat:@"%d", (int)error];
     }
 }
 
@@ -495,7 +495,7 @@ static bool CheckError(OSStatus error, NSString* function) {
     
     AVAudioSession *mySession = [AVAudioSession sharedInstance];
     _previousAVAudioSessionCategory = mySession.category;
-
+    
 #if !(TARGET_OS_TV)
     audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
     if (speakerPhone) {
@@ -510,34 +510,34 @@ static bool CheckError(OSStatus error, NSString* function) {
                      error:&error];
 #endif
     if (error)
-    	OT_AUDIO_DEBUG(@"Audiosession setCategory %@",error);
-
+        OT_AUDIO_DEBUG(@"Audiosession setCategory %@",error);
+    
     if (speakerPhone) {
         [mySession setMode:AVAudioSessionModeVideoChat error: &error];
         if (error)
-        	OT_AUDIO_DEBUG(@"Audiosession setMode %@",error);
-
+            OT_AUDIO_DEBUG(@"Audiosession setMode %@",error);
+        
         [mySession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
         if (error)
-        	OT_AUDIO_DEBUG(@"Audiosession overrideOutputAudioPort %@",error);
+            OT_AUDIO_DEBUG(@"Audiosession overrideOutputAudioPort %@",error);
     } else {
         [mySession setMode:AVAudioSessionModeVoiceChat error: &error];
         if (error)
-        	OT_AUDIO_DEBUG(@"Audiosession setMode %@",error);
-
+            OT_AUDIO_DEBUG(@"Audiosession setMode %@",error);
+        
         [mySession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:&error];
         if (error)
-        	OT_AUDIO_DEBUG(@"Audiosession overrideOutputAudioPort %@",error);
+            OT_AUDIO_DEBUG(@"Audiosession overrideOutputAudioPort %@",error);
     }
-
+    
     [mySession setPreferredIOBufferDuration:kPreferredIOBufferDuration error: &error];
     if (error)
-    	OT_AUDIO_DEBUG(@"Audiosession setPreferredIOBufferDuration %@",error);
-
+        OT_AUDIO_DEBUG(@"Audiosession setPreferredIOBufferDuration %@",error);
+    
     [mySession setPreferredSampleRate: kSampleRate error: &error];
     if (error)
-		OT_AUDIO_DEBUG(@"Audiosession setPreferredSampleRate %@",error);
-
+        OT_AUDIO_DEBUG(@"Audiosession setPreferredSampleRate %@",error);
+    
     error = nil;
 }
 
@@ -573,7 +573,7 @@ static bool CheckError(OSStatus error, NSString* function) {
     NSInteger interruptionType =
     [[interruptionDict valueForKey:AVAudioSessionInterruptionTypeKey]
      integerValue];
-
+    
     dispatch_async(_safetyQueue, ^() {
         [self handleInterruptionEvent:interruptionType];
     });
@@ -714,7 +714,7 @@ static bool CheckError(OSStatus error, NSString* function) {
                    selector:@selector(appDidBecomeActive:)
                        name:UIApplicationDidBecomeActiveNotification
                      object:nil];
-
+        
         areListenerBlocksSetup = YES;
     }
 }
@@ -1000,15 +1000,15 @@ static OSStatus playout_cb(void *ref_con,
     if (!isAudioSessionSetup)
     {
         [self setupAudioSession:_speakerPhone];
-
+        
         NSError *error = nil;
-
+        
         [self setupListenerBlocks];
-		[[AVAudioSession sharedInstance] setActive:YES error:&error];
-	
-		if (error)
-			OT_AUDIO_DEBUG(@"Audiosession setActive %@",error);
-
+        [[AVAudioSession sharedInstance] setActive:YES error:&error];
+        
+        if (error)
+            OT_AUDIO_DEBUG(@"Audiosession setActive %@",error);
+        
         isAudioSessionSetup = YES;
     }
     
