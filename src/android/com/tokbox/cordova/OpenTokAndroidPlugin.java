@@ -562,6 +562,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             } else {
                 AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
             }
+        } else if (action.equals("requestAccess")) {
         } else if (action.equals("exceptionHandler")) {
             
         }

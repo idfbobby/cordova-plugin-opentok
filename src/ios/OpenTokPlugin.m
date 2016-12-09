@@ -84,6 +84,44 @@
         NSLog(@"Audiosession overrideOutputAudioPort:%@",error);
 }
 
+// Called by TB.requestAccess()
+-(void)requestAccess:(CDVInvokedUrlCommand*)command{
+    NSLog(@"requestAccess...");
+
+    NSString* requestDevice = [command.arguments objectAtIndex:0];
+    NSString *mediaType;
+
+    CDVPluginResult* pluginResult = nil;
+
+    if ([requestDevice == "camera"]) {
+        mediaType = AVMediaTypeVideo
+    } else {
+        mediaType = AVMediaTypeAudio;
+    }
+        
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    
+    if (authStatus == AVAuthorizationStatusAuthorized) {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:YES];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    } else if(authStatus == AVAuthorizationStatusDenied){
+        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        }];
+    } else if(authStatus == AVAuthorizationStatusRestricted){
+        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:NO];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    } else if(authStatus == AVAuthorizationStatusNotDetermined){
+        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:granted];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        }];
+    } else {
+        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:NO];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    }
+}
 
 // Called by TB.initsession()
 -(void)initSession:(CDVInvokedUrlCommand*)command{
