@@ -563,6 +563,28 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
                 AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
             }
         } else if (action.equals("requestAccess")) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                String checkPerm;
+                int requestCode;
+
+                if (args.getString(0).equals("camera")) {
+                    checkPerm = Manifest.permission.CAMERA;
+                    requestCode = 1;
+                } else {
+                    checkPerm = Manifest.permission.RECORD_AUDIO;
+                    requestCode = 0;
+                }
+                    
+                if (ContextCompat.checkSelfPermission(cordova.getActivity(), checkPerm) != PackageManager.PERMISSION_GRANTED) {
+
+                    ActivityCompat.requestPermissions(cordova.getActivity(),
+                                                      new String[]{ checkPerm },
+                                                      requestCode);
+
+                }
+            }
+            callbackContext.success();
+            return true;
         } else if (action.equals("exceptionHandler")) {
             
         }
