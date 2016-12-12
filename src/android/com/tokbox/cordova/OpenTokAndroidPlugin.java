@@ -15,14 +15,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.PowerManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +61,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     public HashMap<String, RunnableSubscriber> subscriberCollection;
     
     private static PowerManager.WakeLock wakeLock;
+    private CallbackContext permissionsCallback;
     
     static JSONObject viewList = new JSONObject();
     static CordovaInterface _cordova;
@@ -445,7 +450,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             
             /* set audio driver */
             OTDefaultAudioDevice otDefaultAudioDevice = new OTDefaultAudioDevice(this.cordova.getActivity().getApplicationContext());
-            otDefaultAudioDevice.setSpeakerPhone( isVideo );
+            otDefaultAudioDevice.setOutputMode(isVideo?BaseAudioDevice.OutputMode.SpeakerPhone:BaseAudioDevice.OutputMode.Handset);
             AudioDeviceManager.setAudioDevice(otDefaultAudioDevice);
             
             mSession = new Session(this.cordova.getActivity().getApplicationContext(), args.getString(0), args.getString(1));
@@ -566,7 +571,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 String checkPerm;
                 int requestCode;
-
+                
                 if (args.getString(0).equals("camera")) {
                     checkPerm = Manifest.permission.CAMERA;
                     requestCode = 1;
@@ -574,16 +579,18 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
                     checkPerm = Manifest.permission.RECORD_AUDIO;
                     requestCode = 0;
                 }
-                    
-                if (ContextCompat.checkSelfPermission(cordova.getActivity(), checkPerm) != PackageManager.PERMISSION_GRANTED) {
-
-                    ActivityCompat.requestPermissions(cordova.getActivity(),
-                                                      new String[]{ checkPerm },
-                                                      requestCode);
-
+                
+                if (!cordova.hasPermission(checkPerm)) {
+                    permissionsCallback = callbackContext;
+                    cordova.requestPermission(this, requestCode, checkPerm);
+                } else {
+                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, true));
+                    callbackContext.success();
                 }
+            } else {
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, true));
+                callbackContext.success();
             }
-            callbackContext.success();
             return true;
         } else if (action.equals("exceptionHandler")) {
             
@@ -598,6 +605,25 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
         AlertDialog dialog = builder.create();
     }
     
+    @Override
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+        if (permissionsCallback == null) {
+            return;
+        }
+        
+        JSONObject returnObj = new JSONObject();
+        if (permissions != null && permissions.length > 0) {
+            boolean result = true;
+            for(int i = 0; i<grantResults.length;i++) {
+                result = result && (grantResults[i] == PackageManager.PERMISSION_GRANTED);
+            }
+            permissionsCallback.sendPluginResult(new PluginResult(PluginResult.Status.OK, result));
+            permissionsCallback.success();
+        } else {
+            permissionsCallback.success();
+        }
+        permissionsCallback = null;
+    }
     
     // sessionListener
     @Override
