@@ -80,10 +80,10 @@
         <access origin="*" />
       </config-file>
       <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
-      	<string>${PRODUCT_NAME} camera use</string>
+      	<string>This lets you make video calls.</string>
       </config-file>
       <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
-      	<string>${PRODUCT_NAME} microphone use</string>
+      	<string>This lets you make voice and video calls.</string>
       </config-file>
     </platform>
 </plugin>
