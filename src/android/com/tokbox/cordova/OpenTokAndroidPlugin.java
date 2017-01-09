@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
@@ -62,7 +63,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     
     private static PowerManager.WakeLock wakeLock;
     private CallbackContext permissionsCallback;
-    
+
     static JSONObject viewList = new JSONObject();
     static CordovaInterface _cordova;
     static CordovaWebView _webView;
@@ -447,13 +448,14 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             }
         } else if (action.equals("initSession")) {
             boolean isVideo = (args.length() == 3) && (args.getBoolean(2)); // have 3 arguments, and last one is true
-            
+            Context context = cordova.getActivity().getApplicationContext();
+
             /* set audio driver */
-            OTDefaultAudioDevice otDefaultAudioDevice = new OTDefaultAudioDevice(this.cordova.getActivity().getApplicationContext());
+            OTDefaultAudioDevice otDefaultAudioDevice = new OTDefaultAudioDevice(context,isVideo);
             otDefaultAudioDevice.setOutputMode(isVideo?BaseAudioDevice.OutputMode.SpeakerPhone:BaseAudioDevice.OutputMode.Handset);
             AudioDeviceManager.setAudioDevice(otDefaultAudioDevice);
             
-            mSession = new Session(this.cordova.getActivity().getApplicationContext(), args.getString(0), args.getString(1));
+            mSession = new Session(context, args.getString(0), args.getString(1));
             Log.i(TAG, "created new session with data: " + args.toString());
             
             PowerManager powerManager = (PowerManager) cordova.getActivity().getSystemService(Context.POWER_SERVICE);
@@ -555,23 +557,31 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             
             // Audio methods
         } else if (action.equals("setupAudioSession")) {
-            if (args.getBoolean(0)) {
-                AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
-            } else {
-                AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
+            if (AudioDeviceManager.getAudioDevice() != null) {
+                if (args.getBoolean(0)) {
+                    AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
+                } else {
+                    AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
+                }
             }
         } else if (action.equals("stopAudioSession")) {
         } else if (action.equals("loudSpeaker")) {
-            if (args.getBoolean(0)) {
-                AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
+            Log.i(TAG, "loudSpeaker " + args.getBoolean(0));
+            if (AudioDeviceManager.getAudioDevice() != null) {
+                if (args.getBoolean(0)) {
+                    AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.SpeakerPhone);
+                } else {
+                    AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
+                }
             } else {
-                AudioDeviceManager.getAudioDevice().setOutputMode(BaseAudioDevice.OutputMode.Handset);
+                AudioManager am = (AudioManager) cordova.getActivity().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                am.setSpeakerphoneOn(args.getBoolean(0));
             }
         } else if (action.equals("requestAccess")) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 String checkPerm;
                 int requestCode;
-                
+
                 if (args.getString(0).equals("camera")) {
                     checkPerm = Manifest.permission.CAMERA;
                     requestCode = 1;
@@ -579,7 +589,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
                     checkPerm = Manifest.permission.RECORD_AUDIO;
                     requestCode = 0;
                 }
-                
+                    
                 if (!cordova.hasPermission(checkPerm)) {
                     permissionsCallback = callbackContext;
                     cordova.requestPermission(this, requestCode, checkPerm);
@@ -604,13 +614,13 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
         builder.setMessage(message).setTitle("TokBox Message");
         AlertDialog dialog = builder.create();
     }
-    
+
     @Override
     public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
         if (permissionsCallback == null) {
             return;
         }
-        
+
         JSONObject returnObj = new JSONObject();
         if (permissions != null && permissions.length > 0) {
             boolean result = true;

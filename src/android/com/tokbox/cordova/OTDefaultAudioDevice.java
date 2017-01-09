@@ -61,7 +61,9 @@ public class OTDefaultAudioDevice extends BaseAudioDevice  {
 
     private AudioManager m_audioManager;
 
-    public OTDefaultAudioDevice(Context context) {
+    private boolean m_isVideo;
+
+    public OTDefaultAudioDevice(Context context, boolean isVideo) {
         this.m_context = context;
 
         try {
@@ -82,7 +84,10 @@ public class OTDefaultAudioDevice extends BaseAudioDevice  {
         m_audioManager = (AudioManager) m_context
                 .getSystemService(Context.AUDIO_SERVICE);
 
+        m_isVideo = isVideo;
+
         m_audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        m_audioManager.setSpeakerphoneOn(!isVideo);
     }
 
     @Override
@@ -287,7 +292,11 @@ public class OTDefaultAudioDevice extends BaseAudioDevice  {
 
         m_bufferedPlaySamples = 0;
 
-        setOutputMode(OutputMode.SpeakerPhone);
+        if (m_isVideo) {
+            setOutputMode(OutputMode.SpeakerPhone);
+        } else {
+            setOutputMode(OutputMode.Handset);
+        }
 
         m_shutdownRenderThread = false;
         new Thread(m_renderThread).start();
