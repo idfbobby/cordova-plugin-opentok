@@ -16,7 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,8 +25,6 @@ import android.graphics.Rect;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.PowerManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,13 +45,12 @@ import com.opentok.android.SubscriberKit;
 
 public class OpenTokAndroidPlugin extends CordovaPlugin implements
 Session.SessionListener, Session.ConnectionListener, Session.SignalListener,
-PublisherKit.PublisherListener, Session.StreamPropertiesListener {
+PublisherKit.PublisherListener, Publisher.CameraListener, Session.StreamPropertiesListener {
     
-    private String sessionId;
     protected Session mSession;
+    protected String mCamera = "front";
     public static final String TAG = "OTPlugin";
     public boolean sessionConnected;
-    public boolean publishCalled; // we need this because creating publisher before sessionConnected = crash
     public RunnablePublisher myPublisher;
     public HashMap<String, CallbackContext> myEventListeners;
     public HashMap<String, Connection> connectionCollection;
@@ -65,10 +61,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     private CallbackContext permissionsCallback;
 
     static JSONObject viewList = new JSONObject();
-    static CordovaInterface _cordova;
-    static CordovaWebView _webView;
-    
-    
+
     public class RunnableUpdateViews implements Runnable {
         public JSONArray mProperty;
         public View mView;
@@ -109,7 +102,6 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             }
         }
         
-        @SuppressLint("NewApi")
         @Override
         public void run() {
             try {
@@ -166,7 +158,7 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             Editor edit = prefs.edit();
             edit.clear();
             edit.putBoolean("opentok.publisher.accepted", true);
-            edit.commit();
+            edit.apply();
         }
         
         public void setPropertyFromArray(JSONArray args) {
@@ -190,13 +182,22 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             if (mPublisher == null) {
                 ViewGroup frame = (ViewGroup) cordova.getActivity().findViewById(android.R.id.content);
                 String publisherName;
+                Boolean publishAudio = true;
+                Boolean publishVideo = true;
                 try {
                     publisherName = this.mProperty.getString(0);
+                    publishAudio = compareStrings(this.mProperty.getString(6), "true");
+                    publishVideo = compareStrings(this.mProperty.getString(7), "true");
                 } catch (Exception e) {
                     publisherName = "Android-Publisher";
                 }
-                
-                mPublisher = new Publisher(cordova.getActivity().getApplicationContext(), publisherName);
+
+                Publisher.Builder builder = new Publisher.Builder(cordova.getActivity().getApplicationContext());
+                builder.name(publisherName);
+                builder.audioTrack(publishAudio);
+                builder.videoTrack(publishVideo);
+
+                mPublisher = builder.build();
                 mPublisher.setCameraListener(this);
                 mPublisher.setPublisherListener(this);
                 try {
@@ -229,9 +230,10 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
         public void onStreamCreated(PublisherKit arg0, Stream arg1) {
             Log.i(TAG, "publisher stream received");
             try {
-                if (compareStrings(this.mProperty.getString(8), "back")) {
+                if ( (compareStrings(this.mProperty.getString(8), "back")) && ( mCamera.equals("front")) ) {
                     Log.i(TAG, "swapping camera");
                     mPublisher.cycleCamera(); // default is front
+                    mCamera = "back";
                 }
             } catch (Exception e) {
                 Log.i(TAG, "error when trying to retrieve cameraName property");
@@ -291,8 +293,10 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
         
         public void run() {
             if (mSubscriber == null) {
-                logMessage("NEW SUBSCRIBER BEING CREATED");
-                mSubscriber = new Subscriber(cordova.getActivity(), mStream);
+                Log.i(TAG, "NEW SUBSCRIBER BEING CREATED");
+
+                Subscriber.Builder builder = new Subscriber.Builder(cordova.getActivity(), mStream);
+                mSubscriber = builder.build();
                 mSubscriber.setVideoListener(this);
                 mSubscriber.setSubscriberListener(this);
                 ViewGroup frame = (ViewGroup) cordova.getActivity().findViewById(android.R.id.content);
@@ -398,8 +402,6 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        _cordova = cordova;
-        _webView = webView;
         Log.d(TAG, "Initialize Plugin");
         // By default, get a pointer to mainView and add mainView to the viewList as it always exists (hold cordova's view)
         if (!viewList.has("mainView")) {
@@ -414,7 +416,6 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
         }
         
         // set OpenTok states
-        publishCalled = false;
         sessionConnected = false;
         myEventListeners = new HashMap<String, CallbackContext>();
         connectionCollection = new HashMap<String, Connection>();
@@ -455,7 +456,9 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             otDefaultAudioDevice.setOutputMode(isVideo?BaseAudioDevice.OutputMode.SpeakerPhone:BaseAudioDevice.OutputMode.Handset);
             AudioDeviceManager.setAudioDevice(otDefaultAudioDevice);
             
-            mSession = new Session(context, args.getString(0), args.getString(1));
+            Session.Builder builder = new Session.Builder(context, args.getString(0), args.getString(1));
+            mSession = builder.build();
+
             Log.i(TAG, "created new session with data: " + args.toString());
             
             PowerManager powerManager = (PowerManager) cordova.getActivity().getSystemService(Context.POWER_SERVICE);
@@ -482,10 +485,12 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             // publisher methods
         } else if (action.equals("setCameraPosition")) {
             String cameraId = args.getString(0);
-            if (cameraId.equals("front")) {
-                myPublisher.mPublisher.setCameraId(1);
-            } else if (cameraId.equals("back")) {
-                myPublisher.mPublisher.setCameraId(0);
+            if ((cameraId.equals("front")) && (!mCamera.equals("front"))) {
+                myPublisher.mPublisher.cycleCamera();
+                mCamera = "front";
+            } else if ((cameraId.equals("back")) && (mCamera.equals("front"))) {
+                myPublisher.mPublisher.cycleCamera();
+                mCamera = "back";
             }
         } else if (action.equals("publishAudio")) {
             String val = args.getString(0);
@@ -609,10 +614,10 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     }
     
     public void alertUser(String message) {
-        // 1. Instantiate an AlertDialog.Builder with its constructor
         AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getActivity());
-        builder.setMessage(message).setTitle("TokBox Message");
+        builder.setMessage(message).setTitle( cordova.getActivity().getApplicationInfo().name );
         AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override
@@ -621,7 +626,6 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
             return;
         }
 
-        JSONObject returnObj = new JSONObject();
         if (permissions != null && permissions.length > 0) {
             boolean result = true;
             for(int i = 0; i<grantResults.length;i++) {
@@ -637,17 +641,17 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     
     // sessionListener
     @Override
-    public void onConnected(Session arg0) {
+    public void onConnected(Session session) {
         Log.i(TAG, "session connected, triggering sessionConnected Event. My Cid is: " +
-              mSession.getConnection().getConnectionId());
+                session.getConnection().getConnectionId());
         sessionConnected = true;
         
-        connectionCollection.put(mSession.getConnection().getConnectionId(), mSession.getConnection());
+        connectionCollection.put(session.getConnection().getConnectionId(), session.getConnection());
         
         JSONObject data = new JSONObject();
         try {
             data.put("status", "connected");
-            JSONObject connection = createDataFromConnection(mSession.getConnection());
+            JSONObject connection = createDataFromConnection(session.getConnection());
             data.put("connection", connection);
         } catch (JSONException e) {
         }
@@ -786,15 +790,8 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     
     
     // Helper Methods
-    public void logMessage(String a) {
-        Log.i(TAG, a);
-    }
-    
     public boolean compareStrings(String a, String b) {
-        if (a != null && b != null && a.equalsIgnoreCase(b)) {
-            return true;
-        }
-        return false;
+        return (a != null && b != null && a.equalsIgnoreCase(b));
     }
     
     public void triggerStreamDestroyed(Stream arg1, String eventType) {
@@ -887,6 +884,20 @@ PublisherKit.PublisherListener, Session.StreamPropertiesListener {
     public void onStreamVideoTypeChanged(Session arg0, Stream arg1,
                                          StreamVideoType arg2) {
         // TODO Auto-generated method stub
-        
+    }
+
+    @Override
+    public void onCameraChanged(Publisher publisher, int newCameraId) {
+        if (newCameraId == 0) {
+            mCamera = "front";
+        } else {
+            mCamera = "back";
+        }
+    }
+
+    @Override
+    public void onCameraError(Publisher publisher, OpentokError error) {
+        Log.e(TAG, "session exception: " + error.getMessage());
+        alertUser("camera error " + error.getMessage());
     }
 }
