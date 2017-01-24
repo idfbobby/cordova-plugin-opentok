@@ -617,7 +617,9 @@ PublisherKit.PublisherListener, Publisher.CameraListener, Session.StreamProperti
         AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getActivity());
         builder.setMessage(message).setTitle( cordova.getActivity().getApplicationInfo().name );
         AlertDialog dialog = builder.create();
-        dialog.show();
+        if (!cordova.getActivity().isFinishing()) {
+            dialog.show();
+        }
     }
 
     @Override
