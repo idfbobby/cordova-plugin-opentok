@@ -173,9 +173,10 @@ class TBSession
   connectionDestroyed: (event) =>
     pdebug "connectionDestroyedHandler", event
     connection = @connections[ event.connection.connectionId ]
-    connectionEvent = new TBEvent( {connection: connection, reason: "clientDisconnected" } )
-    @trigger("connectionDestroyed", connectionEvent)
-    delete( @connections[ connection.connectionId] )
+    if(connection)
+      connectionEvent = new TBEvent( {connection: connection, reason: "clientDisconnected" } )
+      @trigger("connectionDestroyed", connectionEvent)
+      delete( @connections[ event.connection.connectionId ] )
     return @
   sessionConnected: (event) =>
     pdebug "sessionConnectedHandler", event

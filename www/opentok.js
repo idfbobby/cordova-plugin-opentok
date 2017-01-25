@@ -707,12 +707,14 @@ TBSession = (function() {
     var connection, connectionEvent;
     pdebug("connectionDestroyedHandler", event);
     connection = this.connections[event.connection.connectionId];
-    connectionEvent = new TBEvent({
-      connection: connection,
-      reason: "clientDisconnected"
-    });
-    this.trigger("connectionDestroyed", connectionEvent);
-    delete this.connections[connection.connectionId];
+    if (connection) {
+      connectionEvent = new TBEvent({
+        connection: connection,
+        reason: "clientDisconnected"
+      });
+      this.trigger("connectionDestroyed", connectionEvent);
+      delete this.connections[event.connection.connectionId];
+    }
     return this;
   };
 
