@@ -681,18 +681,15 @@
 }
 - (NSMutableDictionary*)createDataFromStream:(OTStream*)stream{
     NSMutableDictionary* streamData = [[NSMutableDictionary alloc] init];
-    @try {
+    if ([stream.connection valueForKey:@"_connectionId"] != NULL) {
         [streamData setObject: stream.connection.connectionId forKey: @"connectionId" ];
-        [streamData setObject: [NSString stringWithFormat:@"%.0f", [stream.creationTime timeIntervalSince1970]] forKey: @"creationTime" ];
-        [streamData setObject: [NSNumber numberWithInt:-999] forKey: @"fps" ];
-        [streamData setObject: [NSNumber numberWithBool: stream.hasAudio] forKey: @"hasAudio" ];
-        [streamData setObject: [NSNumber numberWithBool: stream.hasVideo] forKey: @"hasVideo" ];
-        [streamData setObject: stream.name forKey: @"name" ];
-        [streamData setObject: stream.streamId forKey: @"streamId" ];
     }
-    @catch (NSException *exception) {
-        NSLog(@"Error creating data from stream: %@", exception.description);
-    }
+    [streamData setObject: [NSString stringWithFormat:@"%.0f", [stream.creationTime timeIntervalSince1970]] forKey: @"creationTime" ];
+    [streamData setObject: [NSNumber numberWithInt:-999] forKey: @"fps" ];
+    [streamData setObject: [NSNumber numberWithBool: stream.hasAudio] forKey: @"hasAudio" ];
+    [streamData setObject: [NSNumber numberWithBool: stream.hasVideo] forKey: @"hasVideo" ];
+    [streamData setObject: stream.name forKey: @"name" ];
+    [streamData setObject: stream.streamId forKey: @"streamId" ];
     return streamData;
 }
 - (void)triggerJSEvent:(NSString*)event withType:(NSString*)type withData:(NSMutableDictionary*) data{
