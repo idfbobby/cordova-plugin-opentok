@@ -5,7 +5,7 @@
 //  Please see the LICENSE included with this distribution for details.
 //
 
-#import "OpentokPlugin.h"
+#import "OpenTokPlugin.h"
 #import "OTDefaultAudioDevice.h"
 
 // Simulator *must* run at 44.1 kHz in order to function properly.
