@@ -35,9 +35,15 @@ class TBSubscriber
     return @
 
   constructor: (stream, divName, properties) ->
-    element = document.getElementById(divName)
-    @id = divName
-    @element = element
+    element = null
+    if typeof(divName) == "string"
+      @id = divName
+      element = document.getElementById(@id) 
+      @element = element
+    else
+      element = divName
+      @element = element
+      @id = divName.id
     pdebug "creating subscriber", properties
     @streamId = stream.streamId
     if(properties? && properties.width=="100%" && properties.height == "100%")

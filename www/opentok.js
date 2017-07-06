@@ -876,9 +876,16 @@ TBSubscriber = (function() {
 
   function TBSubscriber(stream, divName, properties) {
     var borderRadius, divPosition, element, height, name, obj, position, ratios, subscribeToAudio, subscribeToVideo, width, zIndex, _ref;
-    element = document.getElementById(divName);
-    this.id = divName;
-    this.element = element;
+    element = null;
+    if (typeof divName === "string") {
+      this.id = divName;
+      element = document.getElementById(this.id);
+      this.element = element;
+    } else {
+      element = divName;
+      this.element = element;
+      this.id = divName.id;
+    }
     pdebug("creating subscriber", properties);
     this.streamId = stream.streamId;
     if ((properties != null) && properties.width === "100%" && properties.height === "100%") {
