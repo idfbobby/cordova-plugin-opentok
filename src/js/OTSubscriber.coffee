@@ -51,7 +51,7 @@ class TBSubscriber
       element.style.height="100%"
       properties.width = ""
       properties.height = ""
-    divPosition = getPosition( divName )
+    divPosition = getPosition( @id )
     subscribeToVideo="true"
     zIndex = TBGetZIndex(element)
     if(properties?)
@@ -67,7 +67,7 @@ class TBSubscriber
     if (not width?) or width == 0 or (not height?) or height==0
       width = DefaultWidth
       height = DefaultHeight
-    obj = replaceWithVideoStream(divName, stream.streamId, {width:width, height:height})
+    obj = replaceWithVideoStream(@id, stream.streamId, {width:width, height:height})
     position = getPosition(obj.id)
     ratios = TBGetScreenRatios()
     borderRadius = TBGetBorderRadius(element);

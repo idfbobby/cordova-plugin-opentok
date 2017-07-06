@@ -894,7 +894,7 @@ TBSubscriber = (function() {
       properties.width = "";
       properties.height = "";
     }
-    divPosition = getPosition(divName);
+    divPosition = getPosition(this.id);
     subscribeToVideo = "true";
     zIndex = TBGetZIndex(element);
     if ((properties != null)) {
@@ -914,7 +914,7 @@ TBSubscriber = (function() {
       width = DefaultWidth;
       height = DefaultHeight;
     }
-    obj = replaceWithVideoStream(divName, stream.streamId, {
+    obj = replaceWithVideoStream(this.id, stream.streamId, {
       width: width,
       height: height
     });
