@@ -8,7 +8,9 @@
     <description>Add live video streaming to your Cordova Application</description>
     <license>Apache 2.0</license>
     <keywords>opentok,tokbox</keywords>
-
+    <js-module src="www/opentok.js" name="opentok">
+      <clobbers target="opentok" />
+    </js-module>
     <platform name="android">
       <framework src="build-extras.gradle" custom="true" type="gradleReference" />
       <asset src="www/opentok.js" target="opentok.js" />
