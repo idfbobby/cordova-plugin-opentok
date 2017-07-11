@@ -29,6 +29,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.graphics.Color;
 
 import com.opentok.android.AudioDeviceManager;
 import com.opentok.android.BaseAudioDevice;
@@ -84,14 +85,16 @@ PublisherKit.PublisherListener, Publisher.CameraListener, Session.StreamProperti
                 allStreamViews.add(myPublisher);
             }
             Collections.sort(allStreamViews, new CustomComparator());
-            
+            ViewGroup parent = (ViewGroup) cordova.getActivity().findViewById(android.R.id.content);
+            View myWebView = parent.getChildAt(0);
+            parent.removeView(myWebView);
             for (RunnableUpdateViews viewContainer : allStreamViews) {
-                ViewGroup parent = (ViewGroup) cordova.getActivity().findViewById(android.R.id.content);
                 if (null != parent) {
                     parent.removeView(viewContainer.mView);
                     parent.addView(viewContainer.mView);
                 }
             }
+            parent.addView(myWebView);
         }
         
         public int getZIndex() {
@@ -173,6 +176,12 @@ PublisherKit.PublisherListener, Publisher.CameraListener, Session.StreamProperti
         public void destroyPublisher() {
             ViewGroup parent = (ViewGroup) cordova.getActivity().findViewById(android.R.id.content);
             parent.removeView(this.mView);
+            try {
+                CordovaWebView myWebView = (CordovaWebView) viewList.get("mainView");
+                myWebView.getView().setBackgroundColor(Color.parseColor("#FFFFFF"));
+            } catch(JSONException err){
+
+            }
             this.mPublisher.destroy();
             this.mPublisher = null;
         }
@@ -200,6 +209,12 @@ PublisherKit.PublisherListener, Publisher.CameraListener, Session.StreamProperti
                 mPublisher = builder.build();
                 mPublisher.setCameraListener(this);
                 mPublisher.setPublisherListener(this);
+                try {
+                    CordovaWebView myWebView = (CordovaWebView) viewList.get("mainView");
+                    myWebView.getView().setBackgroundColor(0x00000000);
+                }catch(JSONException err){
+
+                }
                 try {
                     // Camera is swapped in streamCreated event
                     if (compareStrings(this.mProperty.getString(7), "false")) {
