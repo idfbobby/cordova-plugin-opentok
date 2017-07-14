@@ -31,6 +31,9 @@
 #pragma mark Cordova Methods
 -(void) pluginInitialize{
     callbackList = [[NSMutableDictionary alloc] init];
+    [self.webView setOpaque:NO];
+    [self.webView setBackgroundColor:[UIColor clearColor]];
+    self.webView.layer.zPosition = 10;
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];
@@ -193,13 +196,14 @@
             if (zIndex>0) {
                 _publisher.view.layer.zPosition = zIndex;
             }
+											
             NSString* cameraPosition = [command.arguments objectAtIndex:8];
             if ([cameraPosition isEqualToString:@"back"]) {
                 _publisher.cameraPosition = AVCaptureDevicePositionBack;
             }
             _publisher.view.layer.cornerRadius = borderRadius;
             _publisher.view.clipsToBounds = borderRadius ? YES : NO;
-            
+           [self.webView.superview bringSubviewToFront:self.webView]; 
             NSLog(@"initPublisher done");
             
             // Return to Javascript
@@ -428,7 +432,7 @@
     sub.view.layer.cornerRadius = borderRadius;
     sub.view.clipsToBounds = borderRadius ? YES : NO;
     [self.webView.superview addSubview:sub.view];
-    
+    [self.webView.superview bringSubviewToFront:self.webView];
     if (error) {
         NSLog(@"Session.subscribe failed: %@", [error localizedDescription]);
     }
