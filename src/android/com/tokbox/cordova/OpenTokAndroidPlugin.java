@@ -78,8 +78,14 @@ PublisherKit.PublisherListener, Publisher.CameraListener, Session.StreamProperti
         
         public void updateZIndices() {
             ViewGroup parent = (ViewGroup) cordova.getActivity().findViewById(android.R.id.content);
-            View myWebView = parent.getChildAt(0);
-            parent.removeView(myWebView);
+            View myWebView = null;
+            try{
+                CordovaWebView myCWebView = (CordovaWebView) viewList.get("mainView");
+                myWebView = myCWebView.getView();
+                parent.removeView(myWebView);
+            }catch(JSONException err) {
+
+            }
             
             allStreamViews = new ArrayList<RunnableUpdateViews>();
             for (Map.Entry<String, RunnableSubscriber> entry : subscriberCollection.entrySet()) {
