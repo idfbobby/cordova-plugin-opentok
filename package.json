@@ -16,7 +16,7 @@
   },
   "description": "Cordova Plugin for OpenTok iOS === Weave video chat into your web (and now mobile!) application.",
   "cordova": {
-    "id": "com.tokbox.cordova.opentok",
+    "id": "opentok",
     "platforms": [
       "android",
       "ios"
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Taracque/cordova-plugin-opentok.git"
+    "url": "git+https://github.com/idfbobby/cordova-plugin-opentok.git"
   },
   "keywords": [
     "opentok",
@@ -36,7 +36,7 @@
   "author": "Taracque",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/Taracque/cordova-plugin-opentok/issues"
+    "url": "https://github.com/idfbobby/cordova-plugin-opentok/issues"
   },
-  "homepage": "https://github.com/Taracque/cordova-plugin-opentok#readme"
+  "homepage": "https://github.com/idfbobby/cordova-plugin-opentok#readme"
 }
