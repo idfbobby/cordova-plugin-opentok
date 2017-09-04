@@ -1,5 +1,5 @@
 {
-  "name": "OpenTokCordovaPlugin",
+  "name": "cordova-plugin-opentok",
   "version": "1.0.5",
   "devDependencies": {
     "grunt": "^0.4.5",
